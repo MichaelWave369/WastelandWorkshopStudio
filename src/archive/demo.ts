@@ -36,5 +36,11 @@ export function makeDemoArchive(): File {
   const footerView = new DataView(footer.buffer);
   footerView.setUint32(0, indexSize, true);
   footerView.setUint32(4, offset + indexSize + 8, true);
-  return new File([...contentParts, ...tableParts, footer], 'workshop-demo.dat', { type: 'application/octet-stream' });
+  const joined = new Uint8Array(offset + indexSize + footer.length);
+  let cursor = 0;
+  for (const part of [...contentParts, ...tableParts, footer]) {
+    joined.set(part, cursor);
+    cursor += part.length;
+  }
+  return new File([joined], 'workshop-demo.dat', { type: 'application/octet-stream' });
 }

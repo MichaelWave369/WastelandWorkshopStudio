@@ -23,7 +23,7 @@ The new explorer is documented in [DAT_EXPLORER.md](docs/DAT_EXPLORER.md).
 
 **This is not a complete Fallout mod compiler or installer yet.** There is no game directory scanning, whole-archive unpacking, DAT1 LZSS decoding, sprite editor, quest compiler, or validated in-game mod installation. The `.msg` implementation supports a safe subset; nonmatching lines are rejected in full, not discarded. Mod compatibility in an installed game must be independently checked. Other engine adapters are marked planned or research-only, not silently simulated. Fallout 76 is research-only.
 
-The web app does **not** read or change installed games. All state stays in your browser except exported files you explicitly download. LocalStorage is not a backup; download project JSON regularly.
+The browser app never scans installed games or modifies a source archive. It reads only files you select explicitly, in your browser; selected game files are not uploaded. All project state stays in your browser except files you explicitly download. LocalStorage is not a backup; download project JSON regularly.
 
 ## Develop
 

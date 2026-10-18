@@ -5,8 +5,8 @@ import {
   LockKeyhole, Search, ShieldCheck, Upload, X,
 } from 'lucide-react';
 import {
-  MAX_EXTRACT_BYTES, classifyPath, extractDatEntry, hexPreview, inspectDat,
-  isTextResource, resourceName, type DatEntry, type DatIndex, type FormatPreference, type ResourceKind,
+  MAX_EXTRACT_BYTES, extractDatEntry, hexPreview, inspectDat,
+  isTextResource, resourceName, type DatIndex, type FormatPreference, type ResourceKind,
 } from './dat';
 import { makeDemoArchive } from './demo';
 import './explorer.css';
