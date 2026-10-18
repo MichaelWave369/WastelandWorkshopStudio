@@ -1,3 +1,4 @@
+import VaultExplorer from './archive/Explorer';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import {
   Activity, ArrowDownToLine, ArrowRight, BadgeCheck, BookOpen, ChevronRight,
@@ -11,12 +12,13 @@ import {
 } from './core';
 import type { DialogueEntry, GameId, StudioProject, StudioWorkspace } from './types';
 
-type Page = 'workbench' | 'projects' | 'adapters' | 'guide';
+type Page = 'workbench' | 'projects' | 'vault' | 'adapters' | 'guide';
 type Notice = { text: string; type: 'success' | 'error' | 'info' } | null;
 
 const pages = [
   { id: 'workbench' as const, label: 'Dialogue Studio', icon: FileCode },
   { id: 'projects' as const, label: 'Projects', icon: FolderOpen },
+  { id: 'vault' as const, label: 'Vault Explorer', icon: Database },
   { id: 'adapters' as const, label: 'Game Adapters', icon: Layers3 },
   { id: 'guide' as const, label: 'Field Manual', icon: BookOpen },
 ];
@@ -343,6 +345,7 @@ export default function App() {
             </>
           )}
 
+          {page === 'vault' && <VaultExplorer />}
           {page === 'projects' && (
             <section className="page-section">
               <p className="eyebrow"><span className="tiny-line" /> PERSONAL ARCHIVE</p>
@@ -389,7 +392,7 @@ export default function App() {
                 <article className="manual-card"><span>04 / EXPORT</span><Database size={24} /><h3>Download safely</h3><p>Export .msg resources or project JSON backups. To try a resource in game, separately follow the correct installation and scripting workflow for your owned game.</p></article>
               </div>
               <div className="manual-warning"><CircleAlert size={22} /><div><strong>THE BROWSER SANDBOX IS INTENTIONAL</strong><p>No game-folder scanning, DAT extraction, executable modification, mod installation or third-party assets. Those require separate format-aware desktop tools, explicit permissions and more validation.</p></div></div>
-              <div className="manual-links"><a href="https://github.com/MichaelWave369/WastelandWorkshopStudio/blob/main/docs/ARCHITECTURE.md" target="_blank" rel="noreferrer">Architecture &amp; safety <ArrowRight size={14} /></a><a href="https://github.com/MichaelWave369/WastelandWorkshopStudio/issues" target="_blank" rel="noreferrer">Project issue tracker <ArrowRight size={14} /></a></div>
+              <div className="manual-links"><button className="adapter-open" onClick={() => setPage('vault')}>Open the Classic Vault Explorer <ArrowRight size={14} /></button><a href="https://github.com/MichaelWave369/WastelandWorkshopStudio/blob/main/docs/ARCHITECTURE.md" target="_blank" rel="noreferrer">Architecture &amp; safety <ArrowRight size={14} /></a><a href="https://github.com/MichaelWave369/WastelandWorkshopStudio/issues" target="_blank" rel="noreferrer">Project issue tracker <ArrowRight size={14} /></a></div>
             </section>
           )}
           <footer className="footer"><div><Radiation size={15} /> WASTELAND WORKSHOP STUDIO <span>·</span> BUILT FOR MAKERS, NOT MIRAGES</div><span>Independent fan tool · Not affiliated with Fallout rights holders</span></footer>
