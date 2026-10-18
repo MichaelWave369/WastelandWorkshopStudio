@@ -1,0 +1,19 @@
+# Architecture and safety boundaries
+
+## v0.1: browser workbench
+
+- React + TypeScript + Vite SPA, deployable to GitHub Pages.
+- Projects use an explicit `version: 1` JSON schema with separate identifiers.
+- Browser localStorage provides best-effort autosave on the current browser only. Use **Export Project JSON** for portable backups.
+- The only actual game-specific export today is the intentionally limited single-line `{number}{sound}{text}` Fallout 1 / Fallout 2 `.msg` subset.
+- Unsupported imports fail atomically. No dropped lines, no silent conversion.
+- Project filename is checked to block directory traversal.
+- No filesystem permissions, installed-game access, archive extraction, game executable invocation, network account integration, or game modifications in the web app.
+
+## Future adapters
+
+Keep format-aware implementations independent. FO1 DAT and FO2 DAT are not assumed identical. Fallout Tactics, GECK games, Creation Engine games and Fallout 76 have distinct constraints; no generic promise of interchangeable content. A future Electron desktop app must use explicit user-selected directories, non-destructive reads, provenance labels, size limits, staged writes, rollback, and backup-first installs.
+
+## Intellectual property
+
+This is an independent, unofficial editor. Never distribute game-owned art, scripts, sound, executable files or copyrighted assets in the repo or packaged demo. All starter content is original, and user-imported resources remain local to the browser.
