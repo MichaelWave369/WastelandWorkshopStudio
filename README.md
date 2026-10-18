@@ -1,6 +1,6 @@
 # Wasteland Workshop Studio ☢️
 
-**The First Vault | v0.2.0 candidate**
+**The First Vault | v0.2.0 (PR #2)**
 
 An original, unofficial mod-authoring studio for the Fallout series, from the classic isometric games toward later generations.
 
@@ -46,9 +46,9 @@ The `Pages` workflow verifies PRs and builds/deploys on pushes to `main`. Config
 1. Classic `.msg` authoring with portable projects (v0.1).
 2. DAT1 / DAT2 read-only file index and bounded extraction (v0.2).
 3. DAT1 LZSS decoding and palette-aware sprite preview.
-3. Formal game installation discovery in a separate opt-in Electron desktop shell.
-4. Separate, tested GECK / Creation Kit tooling, quest graphs and 3D previews.
-5. Staged exports and game-specific validation.
+4. Formal game installation discovery in a separate opt-in Electron desktop shell.
+5. Separate, tested GECK / Creation Kit tooling, quest graphs and 3D previews.
+6. Staged exports and game-specific validation.
 
 See [architecture and safety boundaries](docs/ARCHITECTURE.md).
 
