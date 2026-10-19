@@ -1,4 +1,4 @@
-import { parseFrm, parsePal, type FrmImage, type RgbPalette } from './frm';
+import { parsePal, type FrmImage, type RgbPalette } from './frm';
 
 export const SPRITE_STORAGE_KEY = 'wws:sprite-lab:v1';
 export const MAX_SPRITE_DIMENSION = 64;

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState, type PointerEvent } from 'react';
 import {
   Brush, CheckCircle2, CircleAlert, Copy, Download, Droplets, Eraser,
   FileImage, FilePlus2, FolderOpen, Pause, Play, Plus, RotateCcw, Save,
-  ShieldCheck, Trash2, Undo2, Upload,
+  ShieldCheck, Trash2, Undo2,
 } from 'lucide-react';
 import { parseFrm } from './frm';
 import SpritePreview from './SpritePreview';
