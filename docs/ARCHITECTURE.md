@@ -21,3 +21,7 @@ This is an independent, unofficial editor. Never distribute game-owned art, scri
 ## v0.2 archive inspection
 
 The Classic Vault Explorer accepts a user-selected local DAT archive and parses its index in browser memory without modifying the file. It supports DAT1 plain entries, DAT2 plain/zlib entries, bounded individual extraction, and a synthetic original demo. DAT1 LZSS extraction and rendered sprite/map previews are not implemented. See [DAT_EXPLORER.md](DAT_EXPLORER.md).
+
+## v0.5 Sprite Creation Lab
+
+Original browser-local pixel editor, palette editor, and FRM v4/PAL writer. New project JSON is versioned and validated on import, and autosave remains best effort. Projects have uniform 1–64-pixel dimensions, 1–16 frames shared across 1–6 orientations, indexed pixels, six-bit RGB palette values, and fixed maximum resource sizes. Original assets are never written to source; explicit export creates local copies. See [SPRITE_LAB.md](SPRITE_LAB.md).
