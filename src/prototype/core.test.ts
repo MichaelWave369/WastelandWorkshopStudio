@@ -83,7 +83,7 @@ describe('Fallout 1/2 item prototype workshop',()=>{
     expect(()=>prototypeFilename(100001)).toThrow();
     expect(()=>parsePrototypeList(enc.encode('BAD.PRO\r\nMORE.PRO\n'))).toThrow(/mixed/);
     expect(()=>parsePrototypeList(Uint8Array.from([0,1]))).toThrow(/control/);
-    const baseline=parsePrototypeList(enc.encode('00000001.PRO\n00000002.PRO\n00000003.PRO\n00000004.PRO'));
+    const baseline=parsePrototypeList(enc.encode('00000003.PRO\n00000001.PRO')); // next physical PID=3 collides with row 1
     expect(()=>buildPrototypeList(baseline)).toThrow(/collides/);
   });
 
