@@ -33,3 +33,7 @@ The new Mod Packager bridges browser-local Dialogue Studio and Sprite Lab worksp
 ## v0.7 Classic Art Registry
 
 This is a local-session, append-only review tool for `art/items/items.lst`. It preserves the user's baseline bytes and zero-based physical line indexes, including empty or comment-only rows, and refuses duplicate proposed names or FID overflow. A selected PRO header can be inspected read-only to compare its FID and PID. Export creates only local proposed LST copies or a review ZIP with SHA-256 before/after receipts. No game files, archives, scripts, prototypes, or registries are modified. See [ART_REGISTRY.md](ART_REGISTRY.md).
+
+## v0.8 Prototype Workshop
+
+The Prototype Workshop reads selected local proto/items/items.lst, art/items/items.lst, optional pro_item.msg, and local item PRO files in memory. It calculates separate one-based prototype PIDs and zero-based art FIDs, inspects all seven known item subtype common headers, and authors only Key/Misc 61/69-byte PRO candidates. The review ZIP carries separate prototype, appended list and message additions under reference/, with SHA-256 receipts. No installed-game modifications, original overwrites, auto-merge, or installation. See PROTOTYPE_WORKSHOP.md.
