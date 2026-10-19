@@ -25,3 +25,7 @@ The Classic Vault Explorer accepts a user-selected local DAT archive and parses 
 ## v0.5 Sprite Creation Lab
 
 Original browser-local pixel editor, palette editor, and FRM v4/PAL writer. New project JSON is versioned and validated on import, and autosave remains best effort. Projects have uniform 1–64-pixel dimensions, 1–16 frames shared across 1–6 orientations, indexed pixels, six-bit RGB palette values, and fixed maximum resource sizes. Original assets are never written to source; explicit export creates local copies. See [SPRITE_LAB.md](SPRITE_LAB.md).
+
+## v0.6 Classic Mod Packager
+
+The new Mod Packager bridges browser-local Dialogue Studio and Sprite Lab workspaces, or optional user-selected local .msg/.frm/.pal files. Resources are kept in memory for the current session, validated and exported as a **STAGING-ONLY** ZIP built by an original STORE/CRC32 ZIP writer. Per-file SHA-256 hashes and byte sizes are recorded in manifest.json. Only simple file basenames and fixed vetted stage paths are supported. No writes to game folders, automatic LST/PRO registration, archive repacking or installation. See [CLASSIC_PACKAGER.md](CLASSIC_PACKAGER.md).
