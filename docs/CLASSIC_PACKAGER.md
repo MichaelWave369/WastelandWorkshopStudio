@@ -29,3 +29,7 @@ A user who selects proprietary game data is responsible for the rights to redist
 - Runs synthetic automated tests for staging path safety, duplicate collisions, hash manifest contents, ZIP structure and malformed files. Actual compatibility requires explicit user-owned game testing.
 
 The browser UI is a build/staging environment, not a substitute for a real game-install test.
+
+## v0.7 Art Registry handoff
+
+Select `items.lst` or `items.proposed.lst` from the Art Registry output. Both are strictly parsed as simple art-items lists and may enter the packager only under `reference/registry/`. They are **not** copied into `stage/data/` and are never merged/installed. Inspect the proposed indices against your actual game lists and use appropriate tooling to update PRO and script references. See [ART_REGISTRY.md](ART_REGISTRY.md).

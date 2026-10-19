@@ -171,7 +171,7 @@ export default function ClassicPackager(){
             <button className="btn btn-outline" disabled={busy} onClick={addDialogue}><FileText size={16}/> ADD CURRENT DIALOGUE</button>
             <button className="btn btn-outline" disabled={busy} onClick={addSprite}><FileImage size={16}/> ADD SPRITE + PAL</button>
             <button className="btn btn-outline" disabled={busy} onClick={()=>filesInput.current?.click()}><Upload size={16}/> ADD LOCAL FILES</button>
-            <input ref={filesInput} type="file" multiple accept=".msg,.frm,.pal" className="visually-hidden"
+            <input ref={filesInput} type="file" multiple accept=".msg,.frm,.pal,.lst" className="visually-hidden"
               onChange={e=>{const files=Array.from(e.target.files??[]);e.target.value='';void uploadFiles(files);}}/>
           </div>
           <div className="packager-resources-heading"><strong>STAGED ASSETS</strong><span>{resources.length} / {MAX_STAGED_FILES} FILES · {byteLabel(total)} / 32 MiB</span></div>
@@ -184,7 +184,7 @@ export default function ClassicPackager(){
               <div className="packager-file-icon">{rowIcon(item.kind)}</div>
               <div className="packager-file-name">
                 <strong>{item.name}</strong><span>{item.origin.replaceAll('-',' ').toUpperCase()} · {byteLabel(item.bytes.length)}</span>
-                <small title={item.name}>{item.kind==='pal'?'REFERENCE PALETTE':item.kind==='frm'?'CLASSIC ITEM SPRITE':'CLASSIC DIALOGUE'} / {item.name}</small>
+                <small title={item.name}>{item.kind==='lst'?'ART LST (REVIEW ONLY)':item.kind==='pal'?'REFERENCE PALETTE':item.kind==='frm'?'CLASSIC ITEM SPRITE':'CLASSIC DIALOGUE'} / {item.name}</small>
               </div>
               <button className="packager-remove" title={'Remove '+item.name} aria-label={'Remove '+item.name} onClick={()=>{setResources(r=>r.filter(x=>x.id!==item.id));clearMessages();}}><Trash2 size={17}/></button>
             </div>)}
@@ -209,7 +209,7 @@ export default function ClassicPackager(){
             <strong>PACKAGE CONTENTS</strong>
             <code>manifest.json</code>
             <code>README_STAGING.txt</code>
-            {resources.slice(0,7).map(r=><code key={r.id}>{r.kind==='msg'?'stage/data/text/english/game/':r.kind==='frm'?'stage/data/art/items/':'reference/palettes/'}{r.name}</code>)}
+            {resources.slice(0,7).map(r=><code key={r.id}>{r.kind==='msg'?'stage/data/text/english/game/':r.kind==='frm'?'stage/data/art/items/':r.kind==='lst'?'reference/registry/':'reference/palettes/'}{r.name}</code>)}
             {resources.length>7&&<small>... and {resources.length-7} more resources</small>}
           </div>
           <div className="packager-export">
