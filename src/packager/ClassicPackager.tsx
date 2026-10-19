@@ -14,6 +14,8 @@ import {
 import { makeZip, type ZipEntry } from './zip';
 import { stagedPath } from './core';
 import type { PrototypeHandoff } from './prototypeBridge';
+import AuditPanel from '../audit/AuditPanel';
+import { auditResources, auditWithReceipts, auditReadme } from '../audit/core';
 import './packager.css';
 
 function uniqueId() {
@@ -79,7 +81,8 @@ export default function ClassicPackager({incoming,onImported}:{
   const errors=issues.filter(i=>i.level==='error');
   const warnings=issues.filter(i=>i.level==='warning');
   const total=resources.reduce((sum,r)=>sum+r.bytes.byteLength,0);
-  const valid=errors.length===0;
+  const audit=useMemo(()=>auditResources(resources,target,name),[resources,target,name]);
+  const valid=errors.length===0 && audit.structuralState==='consistent-for-review';
   function clearMessages(){setError('');setNotice('');}
   function stageNew(candidates:StagedResource[], message:string) {
     const next=[...resources,...candidates];
@@ -139,12 +142,33 @@ export default function ClassicPackager({incoming,onImported}:{
     }catch(cause){setError(errorText(cause));}
   }
 
+  async function exportAuditReport(){
+    if(busy)return;
+    setBusy(true);clearMessages();
+    try{
+      const report=valid ? auditWithReceipts(audit,await buildManifest(resources,target,name,audit.createdAt)) : audit;
+      const body=new TextEncoder().encode(JSON.stringify(report,null,2)+'\n');
+      const safe=new Uint8Array(new ArrayBuffer(body.length));safe.set(body);
+      const url=URL.createObjectURL(new Blob([safe],{type:'application/json;charset=utf-8'}));
+      const anchor=document.createElement('a');
+      anchor.href=url;anchor.download=safeName(name)+'-'+target+'-preflight.json';
+      document.body.appendChild(anchor);anchor.click();anchor.remove();
+      window.setTimeout(()=>URL.revokeObjectURL(url),1200);
+      setNotice('Downloaded the preflight report. BLOCKED reports have no SHA-256 file receipts because the staging package is invalid.');
+    }catch(cause){setError(errorText(cause));}
+    finally{setBusy(false);}
+  }
+
   async function exportPackage(){
     if(!valid||busy)return;
     setBusy(true);clearMessages();
     try{
       const manifest=await buildManifest(resources,target,name);
+      const finalAudit=auditWithReceipts(
+        auditResources(resources,target,name,manifest.createdAt),manifest);
       const entries:ZipEntry[]=stagedEntries(resources).map(r=>({path:r.path,bytes:r.bytes}));
+      entries.push({path:'audit-report.json',bytes:encoder.encode(JSON.stringify(finalAudit,null,2)+'\n')});
+      entries.push({path:'AUDIT_NOT_INSTALL.txt',bytes:encoder.encode(auditReadme(finalAudit))});
       entries.push({path:'manifest.json',bytes:encoder.encode(JSON.stringify(manifest,null,2)+'\n')});
       entries.push({path:'README_STAGING.txt',bytes:encoder.encode(installationNotes(manifest))});
       const zip=makeZip(entries);
@@ -216,12 +240,13 @@ export default function ClassicPackager({incoming,onImported}:{
       </div>
 
       <div className="packager-side">
+        <AuditPanel report={audit} busy={busy} onExport={()=>void exportAuditReport()}/>
         <div className="panel">
           <div className="panel-heading"><div><ShieldCheck size={17}/><strong>BUILD VALIDATION</strong></div><span>03 / 03</span></div>
           <div className={'packager-gate '+(valid?'ready':'blocked')}>
             {valid?<CheckCircle2 size={25}/>:<CircleAlert size={25}/>}
             <div><strong>{valid?'READY FOR STAGING':'EXPORT BLOCKED'}</strong>
-              <span>{valid?'All resource structure checks passed.':'Resolve '+errors.length+' blocking issue(s).'}</span></div>
+              <span>{valid?'Staged resources are structurally consistent; actual game is unverified.':'Resolve '+Math.max(errors.length,audit.totals.fail)+' blocking issue(s).'}</span></div>
           </div>
           <div className="packager-diagnostics">
             {errors.map((issue,i)=><div className="packager-issue red" key={'e'+i}><CircleAlert size={14}/><span>{issue.message}</span></div>)}
@@ -231,6 +256,8 @@ export default function ClassicPackager({incoming,onImported}:{
             <strong>PACKAGE CONTENTS</strong>
             <code>manifest.json</code>
             <code>README_STAGING.txt</code>
+            <code>audit-report.json</code>
+            <code>AUDIT_NOT_INSTALL.txt</code>
             {resources.slice(0,7).map(r=><code key={r.id}>{stagedPath(r)}</code>)}
             {resources.length>7&&<small>... and {resources.length-7} more resources</small>}
           </div>

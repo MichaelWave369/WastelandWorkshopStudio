@@ -45,3 +45,7 @@ Sprite Lab filename normalization now matches Art Registry (uppercase, first 8 s
 Resources are transferred in memory and are not stored persistently. Download a ZIP to keep the review artifact.
 Separate file imports accept eight-digit PRO filenames, proto-items.proposed.lst and pro_item.additions.msg; a PRO without its paired references blocks export.
 All outputs remain review-only with installReady:false. No game folder writes, remote uploads or auto-installation.
+
+## v1.0 Preflight auditor
+
+The Mod Packager now includes a live item dependency audit. Export adds audit-report.json and AUDIT_NOT_INSTALL.txt and keeps all assets in their existing paths. Download a separate diagnostics JSON even when staging validation is blocked, but failed packages never produce a full staging ZIP. Structural passes are **consistent for review**, not installation readiness. Full details: [INTEGRATION_AUDITOR.md](INTEGRATION_AUDITOR.md).
