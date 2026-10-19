@@ -7,7 +7,7 @@
  * https://jansimek.github.io/fallout2-modding/formats/pro/
  * https://falloutmods.fandom.com/wiki/PRO_File_Format
  */
-import { parseArtList, type ArtList, fidHex } from '../registry/core';
+import { type ArtList, fidHex } from '../registry/core';
 export type ItemSubtype = 'key' | 'misc';
 export type TargetGame = 'fo1' | 'fo2';
 export interface PrototypeList {
