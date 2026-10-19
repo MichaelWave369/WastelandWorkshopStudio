@@ -1,0 +1,29 @@
+.audit-content{padding:15px;display:flex;flex-direction:column;gap:13px}
+.audit-subtitle,.audit-fineprint{color:#9cb096;font:500 10px/1.75 'IBM Plex Mono',monospace}
+.audit-fineprint{border-top:1px solid #3a4b3b;padding-top:12px}
+.audit-state{display:flex;align-items:center;gap:11px;padding:14px;border:1px solid #617943;background:#213622;color:#c4ee9b}
+.audit-state.audit-blocked{background:#33251f;border-color:#865c42;color:#f3bc9b}
+.audit-state strong{display:block;font:700 11px/1.5 'IBM Plex Mono',monospace}
+.audit-state span{display:block;margin-top:5px;color:#c2ac91;font:600 9px/1.4 'IBM Plex Mono',monospace;letter-spacing:.4px}
+.audit-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.audit-metrics span{display:flex;flex-direction:column;align-items:center;gap:5px;background:#16271a;border:1px solid #38503a;padding:10px 4px;color:#8ba18b;font:600 9px 'IBM Plex Mono',monospace}
+.audit-metrics strong{color:#d3f5b6;font-size:16px}
+.audit-findings,.audit-traces{display:flex;flex-direction:column;gap:8px}
+.audit-findings h3,.audit-traces h3{color:#aad589;font:700 10px 'IBM Plex Mono',monospace;margin-bottom:3px}
+.audit-finding{display:flex;align-items:flex-start;gap:8px;padding:9px;border:1px solid #43503d;background:#1e2b20;color:#b4c4a6}
+.audit-finding svg{flex-shrink:0;margin-top:1px}
+.audit-finding span{font:500 10px/1.7 'IBM Plex Mono',monospace}
+.audit-finding strong{display:block;color:#c4e4ae;margin-bottom:3px}
+.audit-finding.audit-fail{border-color:#8d5848;color:#edb7a5}
+.audit-finding.audit-fail strong{color:#ffc3ac}
+.audit-finding.audit-warning{border-color:#756845;color:#d4bd90}
+.audit-finding.audit-not-checked{color:#9badac}
+.audit-trace{padding:11px;background:#15251a;border-left:2px solid #7aa85d}
+.audit-trace-title{display:flex;gap:7px;align-items:center;flex-wrap:wrap;color:#c5e9af}
+.audit-trace-title strong{font:700 10px 'IBM Plex Mono',monospace}
+.audit-trace-title small{font:600 8px 'IBM Plex Mono',monospace;color:#bba883;margin-left:auto}
+.audit-trace-title small.audit-tone-error{color:#e9a792}
+.audit-trace-title small.audit-tone-success{color:#aee6a0}
+.audit-trace p{font:500 9px/1.6 'IBM Plex Mono',monospace;color:#9eae99;margin-top:7px;overflow-wrap:anywhere}
+.audit-more{font:500 9px/1.6 'IBM Plex Mono',monospace;color:#8f9e87}
+@media(max-width:450px){.audit-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}

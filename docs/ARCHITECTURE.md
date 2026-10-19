@@ -40,3 +40,7 @@ The Prototype Workshop reads selected local proto/items/items.lst, art/items/ite
 
 ## v0.9 Handoff
 A one-time App-state bridge transfers prototype outputs into the Mod Packager, which checks linked PID/FID/message dependencies, keeps them in reference/ paths, and produces explicit review-only ZIPs. No installed game changes.
+
+## v1.0 Classic Integration Auditor
+
+A pure staged-resource audit engine traces prototype PIDs, item message IDs, art FIDs and sprite files and distinguishes confirmed structural claims, warnings, failed checks and unverified runtime behavior. Mod Packager provides an interactive report and embeds an audited JSON with manifest SHA-256 receipts plus readable notes. Failed staging exports are blocked. No actual installed game, script runtime, or file rights are inferred. See INTEGRATION_AUDITOR.md.
