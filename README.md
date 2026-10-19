@@ -1,6 +1,6 @@
 # Wasteland Workshop Studio ☢️
 
-**The First Vault | v0.5.0 (PR #5)**
+**The First Vault | v0.6.0 (PR #6)**
 
 An original, unofficial mod-authoring studio for the Fallout series, from the classic isometric games toward later generations.
 
@@ -14,6 +14,7 @@ An original, unofficial mod-authoring studio for the Fallout series, from the cl
 - Three original synthetic demos (DAT1, DAT2 and animated FRM with matching PAL); no bundled game resources.
 - Read-only Fallout 1/2 **FRM sprite rendering**, animated frame stepping, orientation selection, zoom, optional real PAL loading and transparent PNG previews.
 - **Sprite Creation Lab** with indexed pixel painting, fill, eraser and eyedropper, synchronized 1–16-frame timelines, up to six sprite directions, a 256-color palette editor, and original FRM v4 / PAL authoring.
+- **Classic Mod Packager**: stage saved dialogue and sprite projects or local .msg/.frm/.pal resources into a non-installing ZIP; verify resource structure, duplicate destinations, and SHA-256 per-file receipts. Includes manifest.json and README_STAGING.txt.
 - Browser-local sprite autosave and portable project JSON. Import standalone FRM files into the editor where they meet the v0.5 64 × 64, uniform-size authoring limits.
 - Open standalone .frm/.fr0–.fr5 files directly, as well as FRM entries inside DAT archives.
 - Fallout 1 / Fallout 2 **single-line** `.msg` dialogue editing, preview, validation, import and export.
@@ -21,7 +22,7 @@ An original, unofficial mod-authoring studio for the Fallout series, from the cl
 - A self-contained starter project with wholly original demo dialogue.
 - Automated parser tests, typecheck, production build and GitHub Pages deployment.
 
-The archive browser is documented in [DAT_EXPLORER.md](docs/DAT_EXPLORER.md). Sprite authoring is documented in [SPRITE_LAB.md](docs/SPRITE_LAB.md).
+The archive browser is documented in [DAT_EXPLORER.md](docs/DAT_EXPLORER.md). Sprite authoring is documented in [SPRITE_LAB.md](docs/SPRITE_LAB.md). Packaging boundaries are in [CLASSIC_PACKAGER.md](docs/CLASSIC_PACKAGER.md).
 
 ### Important limits
 
@@ -52,9 +53,10 @@ The `Pages` workflow verifies PRs and builds/deploys on pushes to `main`. Config
 3. DAT1 LZSS decode and synthetic test fixtures (v0.3).
 4. Palette-aware FRM sprite preview, animation and standalone import (v0.4).
 5. Sprite Creation Lab: indexed editing and original FRM/PAL exports (v0.5).
-6. Formal game installation discovery in a separate opt-in Electron desktop shell.
-7. Separate, tested GECK / Creation Kit tooling, quest graphs and 3D previews.
-8. Staged exports and game-specific validation.
+6. Classic staging ZIP exports with hash manifest and integration warnings (v0.6).
+7. Formal game installation discovery in a separate opt-in Electron desktop shell.
+8. Separate, tested GECK / Creation Kit tooling, quest graphs and 3D previews.
+9. Tested game registration helpers, safe installers and compatibility checks..
 
 See [architecture and safety boundaries](docs/ARCHITECTURE.md).
 
