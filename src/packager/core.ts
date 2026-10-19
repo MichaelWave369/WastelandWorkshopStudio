@@ -1,8 +1,9 @@
 import { parseMsg } from '../core';
 import { parseFrm, parsePal } from '../archive/frm';
+import { parseArtList } from '../registry/core';
 
 export type ClassicTarget = 'fo1' | 'fo2';
-export type StagedKind = 'msg' | 'frm' | 'pal';
+export type StagedKind = 'msg' | 'frm' | 'pal' | 'lst';
 export type StagedOrigin = 'dialogue-project' | 'sprite-project' | 'local-import';
 
 export interface StagedResource {
@@ -27,8 +28,9 @@ export function safePackageName(value: string): string {
 }
 
 export function fileKind(name: string): StagedKind {
+  if (/^(?:items|items\.proposed)\.lst$/i.test(name)) return 'lst';
   const match = /^([a-zA-Z0-9][a-zA-Z0-9_-]{0,63})\.(msg|frm|pal)$/i.exec(name);
-  if (!match) throw new Error('Only simple .msg, .frm and .pal filenames are supported (no paths).');
+  if (!match) throw new Error('Only simple .msg, .frm, .pal, or items[.proposed].lst filenames are supported (no paths).');
   return match[2].toLowerCase() as StagedKind;
 }
 
@@ -47,6 +49,11 @@ export function checkResource(name: string, bytes: Uint8Array): StagedKind {
     ensure(new Set(parsed.entries.map(e => e.number)).size === parsed.entries.length,
       'Invalid MSG: duplicate message IDs.');
   }
+  if (kind === 'lst') {
+    const registry = parseArtList(bytes, name);
+    ensure(registry.lines.length <= 4096, 'LST exceeds 4096 physical art slots.');
+    ensure(registry.lines.length > 0, 'LST must contain at least one physical art-list row.');
+  }
   if (kind === 'frm') parseFrm(bytes, name);
   if (kind === 'pal') {
     ensure(bytes.length >= 768 && bytes.length <= 512 * 1024, 'PAL resource must be between 768 bytes and 512 KiB.');
@@ -62,6 +69,7 @@ export function stagedPath(resource: Pick<StagedResource, 'name' | 'kind'>): str
   if (resource.kind === 'msg') return 'stage/data/text/english/game/' + resource.name;
   if (resource.kind === 'frm') return 'stage/data/art/items/' + resource.name;
   if (resource.kind === 'pal') return 'reference/palettes/' + resource.name;
+  if (resource.kind === 'lst') return 'reference/registry/' + resource.name;
   throw new Error('Unsupported staged resource kind.');
 }
 
@@ -98,6 +106,7 @@ export function validateBundle(resources: StagedResource[], target: ClassicTarge
     issues.push({level:'warning',message:base+'.frm has no same-basename palette in this package. Preview colors may depend on the game palette.'});
   }
   if (resources.some(r=>r.kind==='msg')) issues.push({level:'warning',message:'MSG files still require correct dialogue/script references and registration in the target game; this ZIP does not create them.'});
+  if (resources.some(r=>r.kind==='lst')) issues.push({level:'warning',message:'LST resources stay in reference/registry only. Verify append indexes against the actual game list before manually integrating; these are not installed automatically.'});
   issues.push({level:'warning',message:'This is a review/staging archive, not an auto-installer. Test paths and gameplay with a legally owned game before deploying.'});
   return issues;
 }
@@ -133,6 +142,7 @@ export async function buildManifest(resources: StagedResource[], target: Classic
       'For review and testing only. This archive is not an installer and never modifies a game installation.',
       'The stage/ tree is a proposed loose-file layout. Validate and manually register assets using game-specific tools.',
       'reference/palettes contains supplemental palettes, not an automatic palette override at runtime.',
+      'reference/registry contains manually reviewable LST data only; it is NOT installed or merged automatically.',
       'Do not publicly redistribute files extracted from proprietary game installations.',
     ],
   };
@@ -160,7 +170,8 @@ export function installationNotes(manifest: Manifest): string {
     '2. Review the staged/ path assumptions and any resource collisions.',
     '3. Use the appropriate Fallout 1/2 tools to update required LST, PRO,',
     '   scripts, dialogue references, and other game-specific links.',
-    '4. Confirm palette compatibility and verify your assets in-game.',
+    '4. Review any reference/registry LST proposals and validate line indexes before applying.',
+    '5. Confirm palette compatibility and verify your assets in-game.',
     '5. Keep proprietary game content out of publicly distributed packages.',
     '',
     'No original files were modified by Wasteland Workshop Studio.',

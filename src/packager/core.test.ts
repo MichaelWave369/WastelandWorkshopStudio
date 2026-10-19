@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { createSpriteProject, encodeFrm, encodePal } from '../archive/spriteProject';
+import { buildPatchedList, demoArtList } from '../registry/core';
 import { newProject, serializeMsg } from '../core';
 import { buildManifest, checkResource, fileKind, safePackageName, stagedPath, validateBundle, type StagedResource } from './core';
 import { makeZip } from './zip';
@@ -98,4 +99,21 @@ describe('Independent no-compression ZIP packaging',()=>{
     expect(()=>makeZip([{path:'a.msg',bytes:data},{path:'A.MSG',bytes:data}])).toThrow(/duplicate/);
   });
   it('refuses empty archives',()=>expect(()=>makeZip([])).toThrow(/entry count/));
+});
+
+describe('Art registry handoff into staged mod package',()=>{
+  it('includes proposed LST as review data only, with no installed-game path',()=>{
+    const bytes=buildPatchedList(demoArtList(),[{id:'p',filename:'NEWITEM.FRM',origin:'manual'}]);
+    expect(checkResource('items.proposed.lst',bytes)).toBe('lst');
+    expect(stagedPath({name:'items.proposed.lst',kind:'lst'})).toBe('reference/registry/items.proposed.lst');
+    const report=validateBundle([...sample(),{id:'lst',name:'items.proposed.lst',kind:'lst',origin:'local-import',bytes}],
+      'fo1','Original Workshop');
+    expect(report.filter(issue=>issue.level==='error')).toEqual([]);
+    expect(report.some(issue=>/not installed automatically/.test(issue.message))).toBe(true);
+  });
+  it('rejects unsupported LST namespaces and corrupt records',()=>{
+    expect(()=>fileKind('scripts.lst')).toThrow();
+    expect(()=>fileKind('../items.lst')).toThrow();
+    expect(()=>checkResource('items.lst',Uint8Array.from([65,0,66]))).toThrow(/control/);
+  });
 });

@@ -1,11 +1,12 @@
 import VaultExplorer from './archive/Explorer';
 import SpriteLab from './archive/SpriteLab';
 import ClassicPackager from './packager/ClassicPackager';
+import RegistryLab from './registry/RegistryLab';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import {
   Activity, ArrowDownToLine, ArrowRight, BadgeCheck, BookOpen, Brush, ChevronRight,
   CircleAlert, CircleCheck, Code2, Copy, Database, FileCode, FilePlus2, PackageCheck,
-  FileText, FolderOpen, Gamepad2, Hammer, Info, Layers3, LockKeyhole,
+  FileText, FolderOpen, Gamepad2, Hammer, Info, Layers3, Link2, LockKeyhole,
   Plus, Radiation, Save, ShieldCheck, Terminal, Trash2, Upload, X,
 } from 'lucide-react';
 import {
@@ -14,7 +15,7 @@ import {
 } from './core';
 import type { DialogueEntry, GameId, StudioProject, StudioWorkspace } from './types';
 
-type Page = 'workbench' | 'projects' | 'vault' | 'sprite' | 'packager' | 'adapters' | 'guide';
+type Page = 'workbench' | 'projects' | 'vault' | 'sprite' | 'packager' | 'registry' | 'adapters' | 'guide';
 type Notice = { text: string; type: 'success' | 'error' | 'info' } | null;
 
 const pages = [
@@ -23,6 +24,7 @@ const pages = [
   { id: 'vault' as const, label: 'Vault Explorer', icon: Database },
   { id: 'sprite' as const, label: 'Sprite Lab', icon: Brush },
   { id: 'packager' as const, label: 'Mod Packager', icon: PackageCheck },
+  { id: 'registry' as const, label: 'Art Registry', icon: Link2 },
   { id: 'adapters' as const, label: 'Game Adapters', icon: Layers3 },
   { id: 'guide' as const, label: 'Field Manual', icon: BookOpen },
 ];
@@ -222,7 +224,7 @@ export default function App() {
         </div>
         <div className="topbar-right">
           <span className="operational"><span className="operational-dot" /> LOCAL WORKSPACE</span>
-          <span className="build-version">THE FIRST VAULT / v0.6.0</span>
+          <span className="build-version">THE FIRST VAULT / v0.7.0</span>
           <a className="small-icon-button" href="https://github.com/MichaelWave369/WastelandWorkshopStudio" target="_blank" rel="noreferrer" title="Open the GitHub repository" aria-label="Open GitHub repository"><Code2 size={18} /></a>
         </div>
       </header>
@@ -352,6 +354,7 @@ export default function App() {
           {page === 'vault' && <VaultExplorer />}
           {page === 'sprite' && <SpriteLab />}
           {page === 'packager' && <ClassicPackager />}
+          {page === 'registry' && <RegistryLab />}
           {page === 'projects' && (
             <section className="page-section">
               <p className="eyebrow"><span className="tiny-line" /> PERSONAL ARCHIVE</p>
