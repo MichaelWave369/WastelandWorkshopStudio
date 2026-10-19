@@ -39,7 +39,9 @@ export default function SpritePreview({ image, palette, name }: Props) {
     const ctx = raw.getContext('2d');
     if (!ctx) return;
     const rgba = renderFrmPixels(current, palette);
-    ctx.putImageData(new ImageData(rgba, current.width, current.height), 0, 0);
+    const imageBuffer = new Uint8ClampedArray(new ArrayBuffer(rgba.byteLength));
+    imageBuffer.set(rgba);
+    ctx.putImageData(new ImageData(imageBuffer, current.width, current.height), 0, 0);
 
     let cumulativeX = orientation.xShift;
     let cumulativeY = orientation.yShift;
