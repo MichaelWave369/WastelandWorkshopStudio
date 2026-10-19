@@ -89,7 +89,7 @@ export default function VaultExplorer() {
     setSession(null);
     setActiveFolder(''); setCategory('All'); setSearch(''); setVisibleLimit(160);
     try {
-      const index = await inspectDat(file, format);
+      const index = await inspectDat(file, isDemo ? 'auto' : format);
       if (generation !== request.current) return;
       setSession({ file, index, isDemo });
       setMessage(index.entries.length + ' entries indexed in read-only mode. The original file has not changed.');

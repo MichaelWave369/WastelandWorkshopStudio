@@ -1,3 +1,5 @@
+import { decodeDat1Lzss } from './lzss';
+
 /**
  * Original, read-only index readers for classic Fallout DAT archive containers.
  * Reference: https://github.com/rotators/fallout2-docs/blob/master/content/pages/dat.md
@@ -159,11 +161,7 @@ async function parseDat1(file: File): Promise<DatIndex> {
     }
   }
   for (const entry of entries) checkStoredRange(entry.offset, entry.storedSize, cursor, file.size);
-  const warnings = duplicates(entries);
-  if (entries.some((entry) => entry.codec === 'lzss')) {
-    warnings.push('DAT1 LZSS entries can be listed, but decompression/extraction is not yet implemented.');
-  }
-  return { format: 'dat1', byteLength: file.size, entries, warnings };
+  return { format: 'dat1', byteLength: file.size, entries, warnings: duplicates(entries) };
 }
 export async function inspectDat(file: File, preference: FormatPreference = 'auto'): Promise<DatIndex> {
   check(file.size > 0 && file.size <= MAX_ARCHIVE_BYTES, 'Archive is empty or exceeds the 2 GiB browser safety limit.');
@@ -181,13 +179,13 @@ export async function extractDatEntry(file: File, entry: DatEntry): Promise<Uint
   check(entry.originalSize <= MAX_EXTRACT_BYTES && entry.storedSize <= MAX_EXTRACT_BYTES,
     'Entry is larger than the 24 MiB per-resource safety limit.');
   checkStoredRange(entry.offset, entry.storedSize, 0, file.size);
-  check(entry.codec !== 'lzss', 'DAT1 LZSS decompression is not yet supported. The original archive was not changed.');
   const bytes = new Uint8Array(await file.slice(entry.offset, entry.offset + entry.storedSize).arrayBuffer());
   check(bytes.byteLength === entry.storedSize, 'Entry byte range could not be read completely.');
   if (entry.codec === 'none') {
     check(bytes.length === entry.originalSize, 'Plain entry size mismatch.');
     return bytes;
   }
+  if (entry.codec === 'lzss') return decodeDat1Lzss(bytes, entry.originalSize);
   check(entry.codec === 'zlib', 'Unknown codec.');
   check(typeof DecompressionStream !== 'undefined', 'This browser does not support zlib decompression via DecompressionStream.');
   let stream: ReadableStream<Uint8Array>;

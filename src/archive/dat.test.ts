@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { deflateSync } from 'node:zlib';
+import { makeDat1DemoArchive } from './demo';
 import { classifyPath, extractDatEntry, inspectDat, resourceName } from './dat';
 
 const enc = new TextEncoder();
@@ -88,5 +89,22 @@ describe('Classic DAT archive index reader', () => {
     expect(classifyPath('art/items/thing.frm')).toBe('Art');
     expect(classifyPath('scripts/foo.int')).toBe('Scripts');
     expect(resourceName('art\\critters\\very bad.frm')).toBe('very_bad.frm');
+  });
+});
+
+
+describe('Self-contained DAT1 live demo', () => {
+  it('indexes original demo resources and decompresses its sample dialogue', async () => {
+    const file = makeDat1DemoArchive();
+    const archive = await inspectDat(file);
+    expect(archive.format).toBe('dat1');
+    expect(archive.entries.length).toBe(2);
+    const compressed = archive.entries.find((item) => item.codec === 'lzss');
+    expect(compressed).toBeDefined();
+    const output = await extractDatEntry(file, compressed!);
+    expect(new TextDecoder().decode(output)).toContain('{100}{}{Fallout 1 style archives are readable.}');
+    const root = archive.entries.find((item) => item.path === 'readme.txt');
+    expect(root).toBeDefined();
+    expect(new TextDecoder().decode(await extractDatEntry(file, root!))).toContain('DAT1 workshop demonstration.');
   });
 });
