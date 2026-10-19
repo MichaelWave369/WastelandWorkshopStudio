@@ -5,7 +5,7 @@
  */
 import { parseItemPrototype, parseMessageIds, parsePrototypeList } from '../prototype/core';
 import { parseArtList } from '../registry/core';
-import { stagedPath, validateBundle, type ClassicTarget, type Manifest, type StagedResource } from './core';
+import { stagedPath, validateBundle, type ClassicTarget, type Manifest, type StagedResource } from '../packager/core';
 
 export type AuditResult = 'pass' | 'warning' | 'fail' | 'not-checked';
 export interface AuditCheck {
