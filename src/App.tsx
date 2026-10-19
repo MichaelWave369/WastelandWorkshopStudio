@@ -218,7 +218,7 @@ export default function App() {
         </div>
         <div className="topbar-right">
           <span className="operational"><span className="operational-dot" /> LOCAL WORKSPACE</span>
-          <span className="build-version">THE FIRST VAULT / v0.2.0</span>
+          <span className="build-version">THE FIRST VAULT / v0.3.0</span>
           <a className="small-icon-button" href="https://github.com/MichaelWave369/WastelandWorkshopStudio" target="_blank" rel="noreferrer" title="Open the GitHub repository" aria-label="Open GitHub repository"><Code2 size={18} /></a>
         </div>
       </header>

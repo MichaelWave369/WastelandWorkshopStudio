@@ -5,7 +5,7 @@ Independent implementation of documented Fallout 1 and Fallout 2 archive structu
 Format reference: https://github.com/rotators/fallout2-docs/blob/master/content/pages/dat.md
 
 ## Supported
-- **DAT1 / Fallout 1:** big-endian metadata at the front; list files and download plain (attribute 0x20) entries.
+- **DAT1 / Fallout 1:** big-endian metadata at the front; list and download plain (attribute 0x20) and LZSS-compressed (attribute 0x40) entries.
 - **DAT2 / Fallout 2:** little-endian index at the end; list files and download plain / zlib-compressed entries through the browser's native DecompressionStream.
 - Display folders, file type categories, offsets and compressed/uncompressed sizes. Preview text and a bounded hex prefix of binary entries.
 - Manual local .dat file selection only, structural auto-detection, optional forced format.
