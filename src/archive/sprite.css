@@ -1,0 +1,21 @@
+.sprite-stage{padding:11px 12px 14px;display:flex;flex-direction:column;gap:10px}
+.sprite-stage-top,.sprite-status{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;color:#a9d987;font:700 9px 'IBM Plex Mono',monospace;letter-spacing:.5px}
+.sprite-stage-top span:last-child,.sprite-status span{color:#8dab85}
+.sprite-canvas-frame{background-color:#17241b;background-image:linear-gradient(45deg,#243629 25%,transparent 25%),linear-gradient(-45deg,#243629 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#243629 75%),linear-gradient(-45deg,transparent 75%,#243629 75%);background-size:20px 20px;background-position:0 0,0 10px,10px -10px,-10px 0;overflow:hidden;border:1px solid #506d43;display:flex;align-items:center;justify-content:center}
+.sprite-canvas-frame canvas{display:block;max-width:100%;height:auto;image-rendering:pixelated}
+.sprite-controls{display:flex;flex-direction:column;gap:9px;padding:12px;border:1px solid #354b39;background:#17251a}
+.sprite-control-row{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.sprite-control-row>span,.sprite-control-row>label{font:600 9px 'IBM Plex Mono',monospace;color:#9cc181;letter-spacing:.5px}
+.sprite-control-row>label strong{color:#deedcf;margin-left:6px}
+.sprite-control-row input{width:55%;accent-color:#aad778;cursor:pointer}
+.sprite-direction-options,.sprite-buttons{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.sprite-direction-options button,.sprite-buttons button{border:1px solid #45623f;color:#bfd6ae;background:#1d3422;min-height:28px;min-width:28px;display:grid;place-items:center;font:600 10px 'IBM Plex Mono',monospace;border-radius:2px}
+.sprite-direction-options button:hover,.sprite-buttons button:hover{border-color:#a2ce77;color:#d9ffb0}
+.sprite-direction-options .sprite-direction-selected{color:#1c291b;background:#bbe68b}
+.sprite-buttons strong{padding:0 7px;color:#d4ecc3;font:600 10px 'IBM Plex Mono',monospace}
+.sprite-palette-info{display:flex;flex-direction:column;gap:6px;background:#1d2d20;padding:11px;border-left:2px solid #8ab85b}
+.sprite-palette-info span{font:700 9px 'IBM Plex Mono',monospace;color:#90b87f}
+.sprite-palette-info strong{font:600 10px/1.6 'IBM Plex Mono',monospace;color:#d5edc5;overflow-wrap:anywhere}
+.sprite-palette-info p,.sprite-disclaimer{font:500 10px/1.65 'IBM Plex Mono',monospace;color:#bdaa86}
+.sprite-disclaimer{padding:0 3px;color:#8b9d83}
+@media(max-width:550px){.sprite-control-row input{width:100%}}
