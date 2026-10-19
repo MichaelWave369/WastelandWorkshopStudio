@@ -1,10 +1,11 @@
 import { parseMsg } from '../core';
 import { parseFrm, parsePal } from '../archive/frm';
 import { parseArtList } from '../registry/core';
+import { parseItemPrototype, parsePrototypeList, parseMessageIds } from '../prototype/core';
 
 export type ClassicTarget = 'fo1' | 'fo2';
-export type StagedKind = 'msg' | 'frm' | 'pal' | 'lst';
-export type StagedOrigin = 'dialogue-project' | 'sprite-project' | 'local-import';
+export type StagedKind = 'msg' | 'frm' | 'pal' | 'lst' | 'pro' | 'proto-lst' | 'pro-msg';
+export type StagedOrigin = 'dialogue-project' | 'sprite-project' | 'local-import' | 'prototype-workshop';
 
 export interface StagedResource {
   id: string;
@@ -28,9 +29,12 @@ export function safePackageName(value: string): string {
 }
 
 export function fileKind(name: string): StagedKind {
+  if (/^proto-items\.proposed\.lst$/i.test(name)) return 'proto-lst';
+  if (/^pro_item\.additions\.msg$/i.test(name)) return 'pro-msg';
+  if (/^\d{8}\.pro$/i.test(name)) return 'pro';
   if (/^(?:items|items\.proposed)\.lst$/i.test(name)) return 'lst';
   const match = /^([a-zA-Z0-9][a-zA-Z0-9_-]{0,63})\.(msg|frm|pal)$/i.exec(name);
-  if (!match) throw new Error('Only simple .msg, .frm, .pal, or items[.proposed].lst filenames are supported (no paths).');
+  if (!match) throw new Error('Only simple MSG, FRM, PAL, art items LST, or validated prototype reference files are supported (no paths).');
   return match[2].toLowerCase() as StagedKind;
 }
 
@@ -54,6 +58,22 @@ export function checkResource(name: string, bytes: Uint8Array): StagedKind {
     ensure(registry.lines.length <= 4096, 'LST exceeds 4096 physical art slots.');
     ensure(registry.lines.length > 0, 'LST must contain at least one physical art-list row.');
   }
+  if (kind === 'proto-lst') {
+    ensure(bytes.length <= 2 * 1024 * 1024, 'Prototype LST exceeds 2 MiB.');
+    const parsed = parsePrototypeList(bytes, name);
+    ensure(parsed.entries.length >= 1, 'Prototype LST cannot be empty.');
+  }
+  if (kind === 'pro-msg') {
+    ensure(bytes.length <= 2 * 1024 * 1024, 'Prototype message addition exceeds 2 MiB.');
+    ensure(parseMessageIds(bytes).size >= 2, 'Prototype message additions must contain name and description.');
+  }
+  if (kind === 'pro') {
+    const item = parseItemPrototype(bytes);
+    ensure(item.subtypeName === 'key' || item.subtypeName === 'misc', 'Only Key and Misc item PRO resources are packageable in v0.9.');
+    ensure(bytes.length === item.expectedLength, 'PRO byte count does not match subtype.');
+    ensure(name.toLowerCase() === String(item.number).padStart(8,'0')+'.pro',
+      'PRO filename does not match the prototype PID.');
+  }
   if (kind === 'frm') parseFrm(bytes, name);
   if (kind === 'pal') {
     ensure(bytes.length >= 768 && bytes.length <= 512 * 1024, 'PAL resource must be between 768 bytes and 512 KiB.');
@@ -70,6 +90,9 @@ export function stagedPath(resource: Pick<StagedResource, 'name' | 'kind'>): str
   if (resource.kind === 'frm') return 'stage/data/art/items/' + resource.name;
   if (resource.kind === 'pal') return 'reference/palettes/' + resource.name;
   if (resource.kind === 'lst') return 'reference/registry/' + resource.name;
+  if (resource.kind === 'pro') return 'reference/proto/items/' + resource.name;
+  if (resource.kind === 'proto-lst') return 'reference/proto/items/items.proposed.lst';
+  if (resource.kind === 'pro-msg') return 'reference/messages/pro_item.additions.msg';
   throw new Error('Unsupported staged resource kind.');
 }
 
@@ -98,6 +121,44 @@ export function validateBundle(resources: StagedResource[], target: ClassicTarge
     }
   }
   if (total > MAX_STAGED_BYTES) issues.push({level:'error',message:'Package payload exceeds 32 MiB safety limit.'});
+  const protoFiles=resources.filter(r=>r.kind==='pro');
+  const protoList=resources.find(r=>r.kind==='proto-lst');
+  const prototypeMessage=resources.find(r=>r.kind==='pro-msg');
+  if (protoFiles.length || protoList || prototypeMessage) {
+    if (!protoFiles.length || !protoList || !prototypeMessage)
+      issues.push({level:'error',message:'Prototype staging requires the complete PRO + prototype items LST + pro_item message additions trio.'});
+    if (protoFiles.length && protoList && prototypeMessage) {
+      try {
+        const list=parsePrototypeList(protoList.bytes);
+        const messageIds=parseMessageIds(prototypeMessage.bytes);
+        for (const resource of protoFiles) {
+          const item=parseItemPrototype(resource.bytes);
+          const entry=list.entries[item.number - 1];
+          const token=entry?.trim().split(/[;,\s]/)[0] || '';
+          if(token.toLowerCase()!==resource.name.toLowerCase())
+            issues.push({level:'error',message:resource.name+' is not registered at one-based PID '+item.number+' in the staged prototype list.'});
+          if(!messageIds.has(item.messageId)||!messageIds.has(item.messageId + 1))
+            issues.push({level:'error',message:resource.name+' name/description IDs are missing from prototype message additions.'});
+          if ((item.fid >>> 24) !== 0 || (item.fid & 0xfffff000) !== 0)
+            issues.push({level:'error',message:resource.name+' does not reference a supported art/items type-0 FID.'});
+          const art=resources.find(r=>r.kind==='lst');
+          if(art) {
+            const artList=parseArtList(art.bytes);
+            const line=artList.lines[item.fid];
+            if(!line || line.status!=='entry')
+              issues.push({level:'error',message:resource.name+' art FID '+item.fid+' is missing or reserved in the staged art list.'});
+            else if(!resources.some(r=>r.kind==='frm'&&r.name.toLowerCase()===line.token.toLowerCase()))
+              issues.push({level:'warning',message:resource.name+' references '+line.token+
+                ', but that FRM is not included. It may be supplied by the installed game; verify before deploying.'});
+          } else issues.push({level:'warning',message:resource.name+' art FID cannot be cross-checked because no art items list was staged.'});
+        }
+      } catch (error) {
+        issues.push({level:'error',message:'Prototype cross-reference check failed: '+
+          (error instanceof Error?error.message:'invalid prototype dependency')});
+      }
+    }
+    issues.push({level:'warning',message:'PRO, prototype LST, message additions and art list are REVIEW REFERENCES only. This package does not install or register items.'});
+  }
   if (resources.some(r => r.kind === 'frm')) {
     issues.push({level:'warning',message:'FRM artwork does not become a usable in-game object automatically. Game-specific list/prototype/script registration remains necessary.'});
   }
@@ -114,7 +175,7 @@ export function validateBundle(resources: StagedResource[], target: ClassicTarge
 export interface Manifest {
   schema: 'wws.classic-staging.v1';
   tool: 'Wasteland Workshop Studio';
-  version: '0.6.0';
+  version: '0.9.0';
   packageName: string;
   target: ClassicTarget;
   createdAt: string;
@@ -136,13 +197,14 @@ export async function buildManifest(resources: StagedResource[], target: Classic
       bytes:resource.bytes.length,sha256:hex(new Uint8Array(digest))});
   }
   return {
-    schema:'wws.classic-staging.v1',tool:'Wasteland Workshop Studio',version:'0.6.0',
+    schema:'wws.classic-staging.v1',tool:'Wasteland Workshop Studio',version:'0.9.0',
     packageName:name,target,createdAt,installReady:false,files,
     notes:[
       'For review and testing only. This archive is not an installer and never modifies a game installation.',
       'The stage/ tree is a proposed loose-file layout. Validate and manually register assets using game-specific tools.',
       'reference/palettes contains supplemental palettes, not an automatic palette override at runtime.',
       'reference/registry contains manually reviewable LST data only; it is NOT installed or merged automatically.',
+      'reference/proto and reference/messages are prototype candidate dependencies, not automatically installed or merged.',
       'Do not publicly redistribute files extracted from proprietary game installations.',
     ],
   };
@@ -159,8 +221,8 @@ export function installationNotes(manifest: Manifest): string {
     'Status: NOT INSTALLATION-READY',
     'Generated: '+manifest.createdAt,
     '',
-    'This ZIP contains staged candidate resources. It does not register items,',
-    'create scripts/prototypes, edit DAT archives or install anything.',
+    'This ZIP contains staged candidate resources, including optional prototype',
+    'review binaries. It does not register items, edit DAT archives or install anything.',
     '',
     'CONTENTS',
     ...manifest.files.map(f=>'  '+f.path+' ('+f.bytes+' bytes, SHA-256 '+f.sha256+')'),
@@ -172,7 +234,7 @@ export function installationNotes(manifest: Manifest): string {
     '   scripts, dialogue references, and other game-specific links.',
     '4. Review any reference/registry LST proposals and validate line indexes before applying.',
     '5. Confirm palette compatibility and verify your assets in-game.',
-    '5. Keep proprietary game content out of publicly distributed packages.',
+    '6. Keep proprietary game content out of publicly distributed packages.',
     '',
     'No original files were modified by Wasteland Workshop Studio.',
     '',
