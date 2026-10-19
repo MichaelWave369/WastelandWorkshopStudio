@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { fidHex, parseArtList, demoArtList, MAX_LST_BYTES, type ArtList } from '../registry/core';
 import { makeZip } from '../packager/zip';
+import { makePrototypeHandoff, type PrototypeHandoff } from '../packager/prototypeBridge';
 import {
   createItemPro, defaultDraft, buildPrototypeList, getNextPrototype, makeDemoPrototypeList,
   makeReviewNotes, parseItemPrototype, parseMessageIds, parsePrototypeList,
@@ -29,7 +30,7 @@ async function sha256(data:Uint8Array) {
   const digest=await crypto.subtle.digest('SHA-256',copy);
   return [...new Uint8Array(digest)].map(n=>n.toString(16).padStart(2,'0')).join('');
 }
-export default function PrototypeWorkshop() {
+export default function PrototypeWorkshop({onStage}:{onStage:(handoff:PrototypeHandoff)=>void}) {
   const [target,setTarget]=useState<TargetGame>('fo1');
   const [proto,setProto]=useState<PrototypeList|null>(null);
   const [art,setArt]=useState<ArtList|null>(null);
@@ -134,6 +135,11 @@ export default function PrototypeWorkshop() {
       setNotice('Review ZIP downloaded with SHA-256 receipts, PRO binary, LST append proposal, and MSG additions. No game files modified.');
     }catch(err){setError(errText(err));}finally{setBusy(false);}
   }
+  function sendToPackager(){
+    resetMessages();
+    try{onStage(makePrototypeHandoff(target,draft,proto,art,messages));}
+    catch(error){setError(errText(error));}
+  }
   const selectedArt=art?.lines[draft.artIndex];
   return <section className="proto-page">
     <p className="eyebrow"><span className="tiny-line"/> OBJECT DEFINITIONS / CLASSIC ERA</p>
@@ -234,6 +240,8 @@ export default function PrototypeWorkshop() {
           <div className="proto-export">
             <button className="btn btn-primary btn-full" disabled={!valid||busy} onClick={()=>void downloadReview()}>
               <PackageCheck size={16}/>{busy?'BUILDING REVIEW BUNDLE…':'DOWNLOAD PROTOTYPE REVIEW ZIP'}</button>
+            <button className="btn btn-outline btn-full" disabled={!valid||busy} onClick={sendToPackager}>
+              <Link2 size={16}/> SEND PROTOTYPE REFERENCES TO MOD PACKAGER</button>
             <button className="btn btn-outline btn-full" disabled={!valid||busy} onClick={downloadPro}>
               <ArrowDownToLine size={16}/> DOWNLOAD STANDALONE .PRO</button>
             <p>All output is reference-only. The review ZIP includes SHA-256 receipts and does not install, edit or merge game files.</p>

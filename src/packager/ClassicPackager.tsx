@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Archive, ArrowDownToLine, CheckCircle2, CircleAlert, Code2, Database,
   FileArchive, FileImage, FileText, FolderOpen, HardDriveDownload,
@@ -12,6 +12,8 @@ import {
   type ClassicTarget, type StagedResource,
 } from './core';
 import { makeZip, type ZipEntry } from './zip';
+import { stagedPath } from './core';
+import type { PrototypeHandoff } from './prototypeBridge';
 import './packager.css';
 
 function uniqueId() {
@@ -38,6 +40,7 @@ function downloadZip(name:string,source:Uint8Array){
 }
 function rowIcon(kind:StagedResource['kind']){
   if(kind==='frm')return <FileImage size={19}/>;
+  if(kind==='pro'||kind==='proto-lst'||kind==='pro-msg')return <Code2 size={19}/>;
   if(kind==='pal')return <Database size={19}/>;
   return <FileText size={19}/>;
 }
@@ -45,7 +48,9 @@ function errorText(cause:unknown):string{
   return cause instanceof Error ? cause.message : 'Operation failed.';
 }
 
-export default function ClassicPackager(){
+export default function ClassicPackager({incoming,onImported}:{
+  incoming?:PrototypeHandoff|null;onImported?:()=>void
+}){
   const [name,setName]=useState('My Original Wasteland Mod');
   const [target,setTarget]=useState<ClassicTarget>('fo1');
   const [resources,setResources]=useState<StagedResource[]>([]);
@@ -53,6 +58,23 @@ export default function ClassicPackager(){
   const [error,setError]=useState('');
   const [notice,setNotice]=useState('');
   const filesInput=useRef<HTMLInputElement>(null);
+  const handled=useRef<string|null>(null);
+  useEffect(()=>{
+    if(!incoming||handled.current===incoming.id)return;
+    handled.current=incoming.id;
+    try{
+      if(resources.length&&target!==incoming.target)
+        throw new Error('Existing staging resources target another Fallout version. Clear them before importing this prototype.');
+      const next=[...resources,...incoming.resources];
+      const blockers=validateBundle(next,incoming.target,name).filter(i=>i.level==='error');
+      if(blockers.length)throw new Error(blockers.map(i=>i.message).join('\n'));
+      setTarget(incoming.target);
+      setResources(next);
+      setError('');
+      setNotice('Received four prototype reference resources in memory. No game files modified or uploaded.');
+    }catch(e){setError(errorText(e));}
+    onImported?.();
+  },[incoming,resources,target,name,onImported]);
   const issues=useMemo(()=>validateBundle(resources,target,name),[resources,target,name]);
   const errors=issues.filter(i=>i.level==='error');
   const warnings=issues.filter(i=>i.level==='warning');
@@ -108,7 +130,7 @@ export default function ClassicPackager(){
       const raw=localStorage.getItem(SPRITE_STORAGE_KEY);
       if(!raw)throw new Error('No Sprite Lab project saved in this browser. Visit Sprite Lab first.');
       const sprite=fromSpriteJson(raw);
-      const base=safeName(sprite.name,56);
+      const base=sprite.name.toUpperCase().replace(/[^A-Z0-9_-]/g,'').slice(0,8)||'ITEM';
       const created:StagedResource[]=[
         {id:uniqueId(),name:base+'.frm',kind:'frm',origin:'sprite-project',bytes:encodeFrm(sprite)},
         {id:uniqueId(),name:base+'.pal',kind:'pal',origin:'sprite-project',bytes:encodePal(sprite)},
@@ -137,7 +159,7 @@ export default function ClassicPackager(){
     <div className="packager-hero">
       <div>
         <h1 className="page-title">Classic Mod <em>Packager.</em></h1>
-        <p className="page-description">Combine your original Fallout 1/2 dialogue and sprite resources into a verified staging ZIP with per-file SHA-256 receipts. Review first, register in-game later.</p>
+        <p className="page-description">Combine your original Fallout 1/2 dialogue, sprite, and prototype resources into a verified staging ZIP with per-file SHA-256 receipts. Review first, register in-game later.</p>
       </div>
       <div className="packager-hero-symbol"><PackageCheck size={54}/><span>STAGE · VERIFY · EXPORT</span></div>
     </div>
@@ -171,20 +193,20 @@ export default function ClassicPackager(){
             <button className="btn btn-outline" disabled={busy} onClick={addDialogue}><FileText size={16}/> ADD CURRENT DIALOGUE</button>
             <button className="btn btn-outline" disabled={busy} onClick={addSprite}><FileImage size={16}/> ADD SPRITE + PAL</button>
             <button className="btn btn-outline" disabled={busy} onClick={()=>filesInput.current?.click()}><Upload size={16}/> ADD LOCAL FILES</button>
-            <input ref={filesInput} type="file" multiple accept=".msg,.frm,.pal,.lst" className="visually-hidden"
+            <input ref={filesInput} type="file" multiple accept=".msg,.frm,.pal,.lst,.pro" className="visually-hidden"
               onChange={e=>{const files=Array.from(e.target.files??[]);e.target.value='';void uploadFiles(files);}}/>
           </div>
           <div className="packager-resources-heading"><strong>STAGED ASSETS</strong><span>{resources.length} / {MAX_STAGED_FILES} FILES · {byteLabel(total)} / 32 MiB</span></div>
           {resources.length===0?<div className="packager-empty">
             <FileArchive size={37}/>
             <strong>THE CRATE IS EMPTY</strong>
-            <p>Add a resource from Sprite Lab, Dialogue Studio, or your local files to begin assembling a staging package.</p>
+            <p>Add a resource from Sprite Lab, Dialogue Studio, Prototype Workshop, or your local files to begin assembling a staging package.</p>
           </div>:<div className="packager-file-list">
             {resources.map(item=><div key={item.id} className="packager-file-row">
               <div className="packager-file-icon">{rowIcon(item.kind)}</div>
               <div className="packager-file-name">
                 <strong>{item.name}</strong><span>{item.origin.replaceAll('-',' ').toUpperCase()} · {byteLabel(item.bytes.length)}</span>
-                <small title={item.name}>{item.kind==='lst'?'ART LST (REVIEW ONLY)':item.kind==='pal'?'REFERENCE PALETTE':item.kind==='frm'?'CLASSIC ITEM SPRITE':'CLASSIC DIALOGUE'} / {item.name}</small>
+                <small title={item.name}>{item.kind==='pro'?'ITEM PRO (REVIEW ONLY)':item.kind==='proto-lst'?'PROTOTYPE LST (REVIEW ONLY)':item.kind==='pro-msg'?'ITEM MESSAGES (REVIEW ONLY)':item.kind==='lst'?'ART LST (REVIEW ONLY)':item.kind==='pal'?'REFERENCE PALETTE':item.kind==='frm'?'CLASSIC ITEM SPRITE':'CLASSIC DIALOGUE'} / {item.name}</small>
               </div>
               <button className="packager-remove" title={'Remove '+item.name} aria-label={'Remove '+item.name} onClick={()=>{setResources(r=>r.filter(x=>x.id!==item.id));clearMessages();}}><Trash2 size={17}/></button>
             </div>)}
@@ -209,7 +231,7 @@ export default function ClassicPackager(){
             <strong>PACKAGE CONTENTS</strong>
             <code>manifest.json</code>
             <code>README_STAGING.txt</code>
-            {resources.slice(0,7).map(r=><code key={r.id}>{r.kind==='msg'?'stage/data/text/english/game/':r.kind==='frm'?'stage/data/art/items/':r.kind==='lst'?'reference/registry/':'reference/palettes/'}{r.name}</code>)}
+            {resources.slice(0,7).map(r=><code key={r.id}>{stagedPath(r)}</code>)}
             {resources.length>7&&<small>... and {resources.length-7} more resources</small>}
           </div>
           <div className="packager-export">

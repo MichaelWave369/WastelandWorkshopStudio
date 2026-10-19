@@ -27,3 +27,15 @@ Export a standalone PRO or a review ZIP. ZIP contents: reference/proto/items/XXX
 - https://github.com/alexbatalov/fallout2-ce/blob/main/src/proto.cc
 
 No third-party code or commercial game assets copied.
+
+## v0.9 Prototype-to-Packager handoff
+
+Use SEND PROTOTYPE REFERENCES TO MOD PACKAGER in Prototype Workshop to hand over a typed in-memory bundle.
+It includes candidate PRO, proposed proto-items LST, pro_item message additions, and the selected art-items LST baseline.
+The packager verifies exact PID-to-prototype-list position, both item message IDs, art FID index, case-insensitive paths and safe resource structure.
+All items are placed under reference/; none are considered installed assets. Unreferenced or missing author-created FRM is a warning because it might already exist in the installed game.
+Target game follows the prototype draft for an empty staging session. Cross-game staging is refused.
+Sprite Lab filename normalization now matches Art Registry (uppercase, first 8 safe stem characters). The actual list entry still must match.
+Resources are transferred in memory and are not stored persistently. Download a ZIP to keep the review artifact.
+Separate file imports accept eight-digit PRO filenames, proto-items.proposed.lst and pro_item.additions.msg; a PRO without its paired references blocks export.
+All outputs remain review-only with installReady:false. No game folder writes, remote uploads or auto-installation.

@@ -3,6 +3,7 @@ import SpriteLab from './archive/SpriteLab';
 import ClassicPackager from './packager/ClassicPackager';
 import RegistryLab from './registry/RegistryLab';
 import PrototypeWorkshop from './prototype/PrototypeWorkshop';
+import type { PrototypeHandoff } from './packager/prototypeBridge';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import {
   Activity, ArrowDownToLine, ArrowRight, BadgeCheck, BookOpen, Brush, ChevronRight,
@@ -54,6 +55,7 @@ function Tag({ children, kind = 'neutral' }: { children: ReactNode; kind?: 'live
 export default function App() {
   const [workspace, setWorkspace] = useState<StudioWorkspace>(readWorkspace);
   const [page, setPage] = useState<Page>('workbench');
+  const [prototypeHandoff,setPrototypeHandoff] = useState<PrototypeHandoff|null>(null);
   const [notice, setNotice] = useState<Notice>(null);
   const [storageProblem, setStorageProblem] = useState(false);
   const [showCreate, setShowCreate] = useState(false);
@@ -226,7 +228,7 @@ export default function App() {
         </div>
         <div className="topbar-right">
           <span className="operational"><span className="operational-dot" /> LOCAL WORKSPACE</span>
-          <span className="build-version">THE FIRST VAULT / v0.8.0</span>
+          <span className="build-version">THE FIRST VAULT / v0.9.0</span>
           <a className="small-icon-button" href="https://github.com/MichaelWave369/WastelandWorkshopStudio" target="_blank" rel="noreferrer" title="Open the GitHub repository" aria-label="Open GitHub repository"><Code2 size={18} /></a>
         </div>
       </header>
@@ -355,9 +357,9 @@ export default function App() {
 
           {page === 'vault' && <VaultExplorer />}
           {page === 'sprite' && <SpriteLab />}
-          {page === 'packager' && <ClassicPackager />}
+          {page === 'packager' && <ClassicPackager incoming={prototypeHandoff} onImported={() => setPrototypeHandoff(null)} />}
           {page === 'registry' && <RegistryLab />}
-          {page === 'prototype' && <PrototypeWorkshop />}
+          {page === 'prototype' && <PrototypeWorkshop onStage={(bundle) => { setPrototypeHandoff(bundle); setPage('packager'); }} />}
           {page === 'projects' && (
             <section className="page-section">
               <p className="eyebrow"><span className="tiny-line" /> PERSONAL ARCHIVE</p>

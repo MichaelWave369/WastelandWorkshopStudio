@@ -37,3 +37,6 @@ This is a local-session, append-only review tool for `art/items/items.lst`. It p
 ## v0.8 Prototype Workshop
 
 The Prototype Workshop reads selected local proto/items/items.lst, art/items/items.lst, optional pro_item.msg, and local item PRO files in memory. It calculates separate one-based prototype PIDs and zero-based art FIDs, inspects all seven known item subtype common headers, and authors only Key/Misc 61/69-byte PRO candidates. The review ZIP carries separate prototype, appended list and message additions under reference/, with SHA-256 receipts. No installed-game modifications, original overwrites, auto-merge, or installation. See PROTOTYPE_WORKSHOP.md.
+
+## v0.9 Handoff
+A one-time App-state bridge transfers prototype outputs into the Mod Packager, which checks linked PID/FID/message dependencies, keeps them in reference/ paths, and produces explicit review-only ZIPs. No installed game changes.

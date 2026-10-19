@@ -33,3 +33,15 @@ The browser UI is a build/staging environment, not a substitute for a real game-
 ## v0.7 Art Registry handoff
 
 Select `items.lst` or `items.proposed.lst` from the Art Registry output. Both are strictly parsed as simple art-items lists and may enter the packager only under `reference/registry/`. They are **not** copied into `stage/data/` and are never merged/installed. Inspect the proposed indices against your actual game lists and use appropriate tooling to update PRO and script references. See [ART_REGISTRY.md](ART_REGISTRY.md).
+
+## v0.9 Prototype-to-Packager handoff
+
+Use SEND PROTOTYPE REFERENCES TO MOD PACKAGER in Prototype Workshop to hand over a typed in-memory bundle.
+It includes candidate PRO, proposed proto-items LST, pro_item message additions, and the selected art-items LST baseline.
+The packager verifies exact PID-to-prototype-list position, both item message IDs, art FID index, case-insensitive paths and safe resource structure.
+All items are placed under reference/; none are considered installed assets. Unreferenced or missing author-created FRM is a warning because it might already exist in the installed game.
+Target game follows the prototype draft for an empty staging session. Cross-game staging is refused.
+Sprite Lab filename normalization now matches Art Registry (uppercase, first 8 safe stem characters). The actual list entry still must match.
+Resources are transferred in memory and are not stored persistently. Download a ZIP to keep the review artifact.
+Separate file imports accept eight-digit PRO filenames, proto-items.proposed.lst and pro_item.additions.msg; a PRO without its paired references blocks export.
+All outputs remain review-only with installReady:false. No game folder writes, remote uploads or auto-installation.
