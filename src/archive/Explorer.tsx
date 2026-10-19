@@ -1,4 +1,7 @@
 import { useMemo, useRef, useState } from 'react';
+import SpritePreview from './SpritePreview';
+import { parseFrm, parsePal, grayscalePalette, type FrmImage, type RgbPalette } from './frm';
+import { makeSpriteDemoArchive } from './spriteDemo';
 import {
   AlertTriangle, Archive, ArrowDownToLine, CheckCircle2, ChevronRight, Database,
   FileArchive, FileCode2, FileText, Folder, HardDrive, Info, Loader2,
@@ -8,14 +11,14 @@ import {
   MAX_EXTRACT_BYTES, extractDatEntry, hexPreview, inspectDat,
   isTextResource, resourceName, type DatIndex, type FormatPreference, type ResourceKind,
 } from './dat';
-import { makeDemoArchive } from './demo';
+import { makeDemoArchive, makeDat1DemoArchive } from './demo';
 import './explorer.css';
 
 const categories: Array<'All' | ResourceKind> = [
   'All', 'Art', 'Maps', 'Dialogue', 'Scripts', 'Prototypes', 'Audio', 'Text', 'Other',
 ];
 type ArchiveSession = { file: File; index: DatIndex; isDemo: boolean };
-type Preview = { kind: 'text' | 'hex' | 'error'; value: string } | null;
+type Preview = { kind: 'text' | 'hex' | 'error'; value: string } | { kind: 'sprite'; image: FrmImage; palette: RgbPalette } | null;
 function sizeLabel(value: number): string {
   if (value < 1024) return value + ' B';
   if (value < 1024 * 1024) return (value / 1024).toFixed(1) + ' KiB';
@@ -40,6 +43,8 @@ function safeDownload(file: string, data: Uint8Array) {
 
 export default function VaultExplorer() {
   const pickRef = useRef<HTMLInputElement>(null);
+  const frmRef = useRef<HTMLInputElement>(null);
+  const palRef = useRef<HTMLInputElement>(null);
   const request = useRef(0);
   const [format, setFormat] = useState<FormatPreference>('auto');
   const [session, setSession] = useState<ArchiveSession | null>(null);
@@ -48,6 +53,8 @@ export default function VaultExplorer() {
   const [search, setSearch] = useState('');
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [preview, setPreview] = useState<Preview>(null);
+  const [paletteOverride, setPaletteOverride] = useState<RgbPalette | null>(null);
+  const [standaloneSprite, setStandaloneSprite] = useState<{ image: FrmImage; name: string } | null>(null);
   const [busy, setBusy] = useState(false);
   const [extractBusy, setExtractBusy] = useState(false);
   const [error, setError] = useState('');
@@ -79,14 +86,56 @@ export default function VaultExplorer() {
     });
     return result;
   }, [session, activeFolder, category, search]);
-  const canExtract = selected && selected.codec !== 'lzss'
-    && selected.originalSize <= MAX_EXTRACT_BYTES && selected.storedSize <= MAX_EXTRACT_BYTES;
+  const canExtract = selected && selected.originalSize <= MAX_EXTRACT_BYTES && selected.storedSize <= MAX_EXTRACT_BYTES;
+
+  async function loadPalette(file: File | undefined) {
+    if (!file) return;
+    setError('');
+    try {
+      if (file.size < 768 || file.size > 512 * 1024) throw new Error('Choose a PAL resource from 768 bytes to 512 KiB.');
+      const result = parsePal(new Uint8Array(await file.arrayBuffer()), file.name, 'selected-file');
+      setPaletteOverride(result);
+      setMessage('Palette selected for sprite preview: ' + file.name + '. No archive contents were changed.');
+    } catch (cause) { setError(prettyError(cause)); }
+  }
+
+  async function openStandaloneFrm(file: File | undefined) {
+    if (!file) return;
+    const generation = ++request.current;
+    setError(''); setMessage(''); setBusy(true); setSession(null); setPreview(null); setSelectedId(null);
+    setStandaloneSprite(null);
+    try {
+      if (file.size > MAX_EXTRACT_BYTES || file.size < 62) throw new Error('FRM must be at least 62 bytes and at most 24 MiB.');
+      const image = parseFrm(new Uint8Array(await file.arrayBuffer()), file.name);
+      if (generation !== request.current) return;
+      setStandaloneSprite({ image, name: file.name });
+      setMessage('Local FRM decoded without modifying the source file. Select a matching PAL for accurate colors.');
+    } catch (cause) {
+      if (generation === request.current) setError(prettyError(cause));
+    } finally {
+      if (generation === request.current) setBusy(false);
+    }
+  }
+
+  async function archivePalette(file: File, index: DatIndex, path: string): Promise<RgbPalette> {
+    const sibling = path.replace(/\.fr(?:m|[0-5])$/i, '.pal').toLowerCase();
+    const local = index.entries.find((entry) => entry.path.toLowerCase() === sibling);
+    const defaultPalette = index.entries.find((entry) => entry.path.toLowerCase() === 'color.pal')
+      ?? index.entries.find((entry) => entry.path.toLowerCase().endsWith('/color.pal'));
+    for (const found of [local, defaultPalette]) {
+      if (!found || found.originalSize < 768 || found.originalSize > 512 * 1024) continue;
+      try {
+        return parsePal(await extractDatEntry(file, found), found.path, 'embedded-file');
+      } catch { /* Fallback is labeled; never pretend decoding succeeded. */ }
+    }
+    return grayscalePalette();
+  }
 
   async function openArchive(file: File, isDemo = false) {
     const generation = ++request.current;
     setError(''); setMessage(''); setBusy(true); setPreview(null);
     setSelectedId(null);
-    setSession(null);
+    setSession(null); setStandaloneSprite(null);
     setActiveFolder(''); setCategory('All'); setSearch(''); setVisibleLimit(160);
     try {
       const index = await inspectDat(file, isDemo ? 'auto' : format);
@@ -102,7 +151,7 @@ export default function VaultExplorer() {
 
   function unloadArchive() {
     ++request.current;
-    setSession(null); setSelectedId(null); setPreview(null); setError(''); setMessage('');
+    setSession(null); setStandaloneSprite(null); setSelectedId(null); setPreview(null); setError(''); setMessage('');
   }
 
   async function selectResource(id: number) {
@@ -111,10 +160,6 @@ export default function VaultExplorer() {
     if (!session) return;
     const entry = session.index.entries[id];
     if (!entry) return;
-    if (entry.codec === 'lzss') {
-      setPreview({ kind: 'error', value: 'Fallout 1 LZSS decompression is not implemented yet. Browse metadata safely; extraction is disabled.' });
-      return;
-    }
     if (entry.originalSize > MAX_EXTRACT_BYTES || entry.storedSize > MAX_EXTRACT_BYTES) {
       setPreview({ kind: 'error', value: 'This resource exceeds the 24 MiB per-entry read limit. Metadata is still available.' });
       return;
@@ -123,7 +168,12 @@ export default function VaultExplorer() {
       setBusy(true);
       const bytes = await extractDatEntry(session.file, entry);
       if (generation !== request.current) return;
-      if (isTextResource(entry.path)) {
+      if (/\.fr(?:m|[0-5])$/i.test(entry.path)) {
+        const image = parseFrm(bytes, entry.path);
+        const palette = await archivePalette(session.file, session.index, entry.path);
+        if (generation !== request.current) return;
+        setPreview({ kind: 'sprite', image, palette });
+      } else if (isTextResource(entry.path)) {
         // Fallout resources may contain legacy single-byte codepages.
         setPreview({ kind: 'text', value: new TextDecoder('windows-1252').decode(bytes.subarray(0, 100_000))
           + (bytes.length > 100_000 ? '\n\n[PREVIEW TRUNCATED AT 100 KB]' : '') });
@@ -179,23 +229,35 @@ export default function VaultExplorer() {
           </select>
         </label>
         <button className="btn btn-primary" disabled={busy} onClick={() => pickRef.current?.click()}><Upload size={15}/> SELECT .DAT</button>
-        <button className="btn btn-outline" disabled={busy} onClick={() => openArchive(makeDemoArchive(), true)}><Database size={15}/> DEMO ARCHIVE</button>
+        <button className="btn btn-outline" disabled={busy} onClick={() => openArchive(makeDat1DemoArchive(), true)}><Database size={15}/> DEMO DAT1</button>
+        <button className="btn btn-outline" disabled={busy} onClick={() => openArchive(makeDemoArchive(), true)}><Database size={15}/> DEMO DAT2</button>
+        <button className="btn btn-outline" disabled={busy} onClick={() => openArchive(makeSpriteDemoArchive(), true)}><FileArchive size={15}/> SPRITE DEMO</button>
+        <button className="btn btn-outline" disabled={busy} onClick={() => frmRef.current?.click()}><Upload size={15}/> OPEN .FRM</button>
+        <button className="btn btn-outline" disabled={busy} onClick={() => palRef.current?.click()}><Upload size={15}/> LOAD .PAL</button>
         <input ref={pickRef} className="visually-hidden" type="file" accept=".dat,application/octet-stream"
           onChange={(event) => { const file = event.target.files?.[0]; event.target.value = ''; if (file) void openArchive(file); }}/>
+        <input ref={frmRef} className="visually-hidden" type="file" accept=".frm,.fr0,.fr1,.fr2,.fr3,.fr4,.fr5"
+          onChange={(event) => { const file = event.target.files?.[0]; event.target.value = ''; void openStandaloneFrm(file); }}/>
+        <input ref={palRef} className="visually-hidden" type="file" accept=".pal"
+          onChange={(event) => { const file = event.target.files?.[0]; event.target.value = ''; void loadPalette(file); }}/>
       </div>
 
       {error && <div className="vault-alert vault-alert-error" role="alert"><AlertTriangle size={17}/><span>{error}</span><button aria-label="Dismiss error" onClick={() => setError('')}><X size={15}/></button></div>}
       {message && <div className="vault-alert" role="status"><CheckCircle2 size={17}/><span>{message}</span><button aria-label="Dismiss notice" onClick={() => setMessage('')}><X size={15}/></button></div>}
 
-      {!session && !busy && <div className="vault-empty">
+      {!session && !standaloneSprite && !busy && <div className="vault-empty">
         <FileArchive size={54} strokeWidth={1.1}/>
         <h2>VAULT SEALED</h2>
-        <p>Select an archive from your own game installation, or open the entirely original synthetic demo archive to explore the interface. The files never leave your browser.</p>
+        <p>Select a local DAT archive, open a standalone FRM sprite, or try our original synthetic DAT1 / DAT2 / animated-sprite demo files. No game assets are uploaded.</p>
         <div className="vault-empty-details"><span>DAT1: BIG ENDIAN / LZSS</span><span>DAT2: LITTLE ENDIAN / ZLIB</span></div>
         <p className="vault-footnote">Not every file ending in .dat is a Fallout archive. Save-game DAT files are different formats.</p>
       </div>}
       {busy && !session && <div className="vault-empty vault-loading"><Loader2 size={32} className="vault-spinner"/><h2>READING ARCHIVE INDEX</h2><p>Validating structure, paths, bounds, and format without changing source bytes.</p></div>}
 
+      {standaloneSprite && !session && <div className="vault-standalone">
+        <div className="vault-panel-title"><FileArchive size={16}/><strong>STANDALONE SPRITE LAB</strong><span>{standaloneSprite.name}</span></div>
+        <SpritePreview key={standaloneSprite.name} name={standaloneSprite.name} image={standaloneSprite.image} palette={paletteOverride ?? grayscalePalette()}/>
+      </div>}
       {session && <>
         <div className="vault-metrics">
           <div className="vault-metric"><span>SOURCE</span><strong title={session.file.name}>{session.file.name}</strong><small>{session.isDemo ? 'ORIGINAL SYNTHETIC DEMO' : 'LOCAL FILE'}</small></div>
@@ -255,16 +317,17 @@ export default function VaultExplorer() {
                 <div><span>ORIGINAL</span><strong>{sizeLabel(selected.originalSize)}</strong></div>
                 <div><span>STATUS</span><strong>{canExtract ? 'READABLE' : 'LOCKED'}</strong></div>
               </div>
-              <div className="vault-preview-heading"><span>{preview?.kind === 'text' ? 'TEXT PREVIEW' : 'BINARY / RESOURCE PREVIEW'}</span><span>{busy ? 'DECODING…' : preview?.kind === 'error' ? 'UNAVAILABLE' : 'BOUNDED'}</span></div>
+              <div className="vault-preview-heading"><span>{preview?.kind === 'sprite' ? 'SPRITE FRAME VIEWER' : preview?.kind === 'text' ? 'TEXT PREVIEW' : 'BINARY / RESOURCE PREVIEW'}</span><span>{busy ? 'DECODING…' : preview?.kind === 'error' ? 'UNAVAILABLE' : 'BOUNDED'}</span></div>
               {busy ? <div className="vault-preview-placeholder"><Loader2 size={22} className="vault-spinner"/> Reading selected entry…</div>
                 : preview?.kind === 'error' ? <div className="vault-preview-error"><LockKeyhole size={16}/>{preview.value}</div>
+                : preview?.kind === 'sprite' ? <SpritePreview key={selected.path} name={selected.path} image={preview.image} palette={paletteOverride ?? preview.palette}/>
                 : preview ? <pre className="vault-preview-code">{preview.value}</pre>
                 : <div className="vault-preview-placeholder">Select an entry to load preview.</div>}
               <button className="btn btn-primary btn-full" disabled={!canExtract || extractBusy} onClick={() => void exportEntry()}>
                 {extractBusy ? <Loader2 size={15} className="vault-spinner"/> : <ArrowDownToLine size={15}/>}
                 {extractBusy ? 'EXTRACTING…' : 'DOWNLOAD RESOURCE COPY'}
               </button>
-              {!canExtract && <p className="vault-restriction">Only supported resources up to 24 MiB can be exported. DAT1 LZSS extraction is coming in a separate tested stage.</p>}
+              {!canExtract && <p className="vault-restriction">Resource exceeds the 24 MiB export budget.</p>}
             </>}
           </div>
         </div>
