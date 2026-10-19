@@ -17,3 +17,7 @@ Keep format-aware implementations independent. FO1 DAT and FO2 DAT are not assum
 ## Intellectual property
 
 This is an independent, unofficial editor. Never distribute game-owned art, scripts, sound, executable files or copyrighted assets in the repo or packaged demo. All starter content is original, and user-imported resources remain local to the browser.
+
+## v0.2 archive inspection
+
+The Classic Vault Explorer accepts a user-selected local DAT archive and parses its index in browser memory without modifying the file. It supports DAT1 plain entries, DAT2 plain/zlib entries, bounded individual extraction, and a synthetic original demo. DAT1 LZSS extraction and rendered sprite/map previews are not implemented. See [DAT_EXPLORER.md](DAT_EXPLORER.md).

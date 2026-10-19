@@ -1,0 +1,80 @@
+.vault-page{min-height:70vh}
+.vault-heading{display:flex;align-items:start;justify-content:space-between;gap:20px;margin-bottom:20px}
+.vault-heading .page-title{margin-bottom:10px}
+.vault-heading .page-description{margin-bottom:0}
+.vault-security{border:1px solid #456440;color:#bfe28e;background:#1b2b1d;padding:10px;display:flex;align-items:center;gap:8px;font:600 10px 'IBM Plex Mono',monospace;white-space:nowrap;border-radius:4px}
+.vault-open-panel{display:flex;align-items:center;flex-wrap:wrap;gap:11px;border:1px solid #3a5237;background:#172419;border-radius:5px;padding:18px;margin:25px 0 17px}
+.vault-open-icon{width:42px;height:42px;background:#293d26;color:#bee988;border:1px solid #577b4a;display:grid;place-items:center;border-radius:5px}
+.vault-open-description{display:flex;flex-direction:column;gap:6px;flex:1 1 220px}
+.vault-open-description strong{font:700 12px 'IBM Plex Mono',monospace;letter-spacing:1px;color:#c2ec98}
+.vault-open-description span{font-size:11px;color:#95a796;line-height:1.6}
+.vault-format{display:flex;flex-direction:column;gap:6px}
+.vault-format span{font:600 9px 'IBM Plex Mono',monospace;color:#90a888;letter-spacing:1px}
+.vault-format select,.vault-filters select{min-height:41px;border:1px solid #42573d;border-radius:3px;background:#121d15;color:#dbedd1;font-size:11px;padding:0 10px}
+.vault-alert{padding:12px 15px;display:flex;align-items:center;gap:10px;margin:12px 0;border:1px solid #4e7040;background:#1c3020;color:#c0e9a5;font-size:11px;line-height:1.6;border-radius:4px}
+.vault-alert span{flex:1}
+.vault-alert button{border:0;background:transparent;color:inherit}
+.vault-alert-error{background:#36251d;border-color:#805440;color:#ffd0b9}
+.vault-alert-warn{background:#2d291d;border-color:#74613a;color:#e8d3a5}
+.vault-empty{border:1px dashed #486346;min-height:360px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:40px 20px;color:#aed681;background:radial-gradient(circle at center,#1c2c1b,#121c16)}
+.vault-empty h2{font:800 35px 'Barlow Condensed',sans-serif;letter-spacing:1px;color:#d0efb0;margin:19px 0 12px}
+.vault-empty>p{max-width:550px;font-size:12px;line-height:1.9;color:#9fb49c}
+.vault-empty-details{display:flex;flex-wrap:wrap;justify-content:center;gap:12px;margin-top:27px}
+.vault-empty-details span{background:#203323;border:1px solid #4b6945;padding:12px;font:600 10px 'IBM Plex Mono',monospace;color:#c5e09b}
+.vault-empty .vault-footnote{font-size:10px;color:#788f7c;margin-top:20px}
+.vault-spinner{animation:vault-spin 1s linear infinite}
+@keyframes vault-spin{to{transform:rotate(360deg)}}
+.vault-metrics{display:flex;align-items:stretch;gap:10px;flex-wrap:wrap;margin-bottom:17px}
+.vault-metric{flex:1 1 130px;min-width:120px;border:1px solid #3b4d3a;background:#19261c;padding:13px;display:flex;flex-direction:column;gap:7px;overflow:hidden}
+.vault-metric>span{font:600 9px 'IBM Plex Mono',monospace;color:#7c9980;letter-spacing:1px}
+.vault-metric strong{font:700 16px 'Barlow Condensed',sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#dbf5bd}
+.vault-metric small{font:500 9px 'IBM Plex Mono',monospace;color:#839988}
+.vault-unload{align-self:stretch;border:1px solid #4e6150;color:#9eb399;background:#1d2a20;padding:10px 14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;font:600 9px 'IBM Plex Mono',monospace}
+.vault-unload:hover{color:#f2f5ef;background:#273d29}
+.vault-browser{display:grid;grid-template-columns:minmax(180px,.69fr) minmax(260px,1.4fr) minmax(260px,1.2fr);align-items:stretch;gap:13px;min-height:510px}
+.vault-panel{min-width:0;background:#151f18;border:1px solid #364637;border-radius:4px;overflow:hidden;display:flex;flex-direction:column}
+.vault-panel-title{padding:15px 13px;display:flex;align-items:center;gap:8px;background:#1b2a1d;border-bottom:1px solid #364637;color:#addd7c}
+.vault-panel-title strong{font:700 10px 'IBM Plex Mono',monospace;letter-spacing:.7px}
+.vault-panel-title>span{margin-left:auto;font:600 9px 'IBM Plex Mono',monospace;color:#93aa91}
+.vault-tree{overflow-y:auto;max-height:650px;padding:9px 6px}
+.vault-folder{width:100%;display:flex;align-items:center;gap:7px;border:0;background:transparent;color:#9eb39d;text-align:left;padding:10px;font:500 10px 'IBM Plex Mono',monospace}
+.vault-folder:hover,.vault-folder-selected{background:#2a422d;color:#c1f08d}
+.vault-folder>svg{flex-shrink:0}
+.vault-folder-name{white-space:nowrap;text-overflow:ellipsis;overflow:hidden;min-width:0}
+.vault-folder>span:last-child{margin-left:auto;color:#7b9580;font-size:9px}
+.vault-tree-hint{color:#a6bb9a;font-size:10px;line-height:1.7;margin:10px}
+.vault-filters{display:flex;gap:7px;padding:10px;border-bottom:1px solid #344536}
+.vault-search{min-width:0;display:flex;align-items:center;gap:8px;flex:1;padding:0 10px;background:#0f1a12;border:1px solid #384b38;color:#87af74}
+.vault-search input{width:100%;background:transparent;border:0;outline:0;color:#e5f2df;min-height:41px;font-size:11px}
+.vault-search input::placeholder{color:#708773}
+.vault-filters select{max-width:133px}
+.vault-file-list{padding:6px;max-height:648px;overflow:auto}
+.vault-file{width:100%;background:transparent;border:1px solid transparent;color:#bed4b9;padding:10px 7px;display:flex;align-items:center;gap:8px;text-align:left;min-width:0}
+.vault-file:hover{background:#213323}
+.vault-file-selected{border-color:#527a44;background:#293f2b;color:#d8f8bb}
+.vault-file>svg{color:#9dcb79;flex-shrink:0}
+.vault-file-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;font:500 10px 'IBM Plex Mono',monospace}
+.vault-file-codec{color:#acb69e;font:600 9px 'IBM Plex Mono',monospace}
+.vault-file-size{font:500 9px 'IBM Plex Mono',monospace;color:#829986;min-width:60px;text-align:right}
+.vault-no-results{color:#8da38d;padding:20px;font-size:11px;text-align:center}
+.vault-more{width:100%;padding:15px;text-align:center;background:#203022;border:1px dashed #5a7650;color:#b8e08f;font:600 10px 'IBM Plex Mono',monospace}
+.vault-no-selection{height:250px;padding:30px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:15px;text-align:center;color:#87a881}
+.vault-no-selection p{font-size:11px;line-height:1.9;max-width:240px;color:#92a995}
+.vault-entry-path{padding:15px;border-bottom:1px solid #344a37;display:flex;flex-direction:column;gap:9px;overflow-wrap:anywhere}
+.vault-entry-path span,.vault-entry-fields span,.vault-preview-heading{font:600 9px 'IBM Plex Mono',monospace;letter-spacing:.7px;color:#8da489}
+.vault-entry-path strong{font:600 12px/1.6 'IBM Plex Mono',monospace;color:#c4eea0}
+.vault-entry-fields{padding:13px 15px;display:grid;grid-template-columns:1fr 1fr;gap:13px;border-bottom:1px solid #344a37}
+.vault-entry-fields>div{display:flex;flex-direction:column;gap:6px;overflow:hidden}
+.vault-entry-fields strong{font:600 11px 'IBM Plex Mono',monospace;color:#d4e2c9;overflow:hidden;text-overflow:ellipsis}
+.vault-preview-heading{display:flex;align-items:center;justify-content:space-between;padding:12px 15px;gap:9px}
+.vault-preview-code{min-height:190px;max-height:300px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;color:#b3df90;background:#0c1710;padding:15px;margin:0 12px 12px;border:1px solid #2c3d30;font:500 10px/1.7 'IBM Plex Mono',monospace}
+.vault-preview-placeholder,.vault-preview-error{min-height:190px;display:flex;justify-content:center;align-items:center;gap:10px;color:#9bae99;text-align:center;padding:25px;font-size:11px;line-height:1.7}
+.vault-preview-error{color:#d9bba0}
+.vault-inspector>.btn{max-width:calc(100% - 24px);margin:12px;white-space:normal}
+.vault-restriction{margin:0 12px 16px;color:#b8a180;font-size:10px;line-height:1.7}
+.vault-safety-footer{margin-top:20px;border-left:2px solid #7fac6a;background:#19271d;padding:17px;display:flex;align-items:flex-start;gap:14px;color:#aada83}
+.vault-safety-footer svg{flex-shrink:0}
+.vault-safety-footer strong{font:700 10px 'IBM Plex Mono',monospace}
+.vault-safety-footer p{color:#9bae98;font-size:11px;line-height:1.8;margin-top:6px}
+@media(max-width:1350px){.vault-browser{grid-template-columns:200px minmax(0,1fr)}.vault-inspector{grid-column:1/-1}.vault-no-selection{height:130px}}
+@media(max-width:780px){.vault-heading{flex-direction:column}.vault-browser{grid-template-columns:1fr}.vault-folders,.vault-inspector{grid-column:auto}.vault-folders .vault-tree{max-height:180px}.vault-open-panel .btn{flex:1 1 auto}.vault-format{flex:1 1 100px}.vault-format select{width:100%}.vault-filters{flex-wrap:wrap}.vault-filters select{max-width:none;flex:1 1 125px}.vault-security{white-space:normal}}
