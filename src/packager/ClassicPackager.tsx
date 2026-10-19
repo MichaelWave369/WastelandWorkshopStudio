@@ -66,7 +66,7 @@ export default function ClassicPackager(){
     setResources(next);clearMessages();setNotice(message);
   }
 
-  async function uploadFiles(list:FileList|null) {
+  async function uploadFiles(list:File[]|null) {
     if(!list?.length)return;
     clearMessages();
     setBusy(true);
@@ -74,7 +74,7 @@ export default function ClassicPackager(){
       if(resources.length+list.length>MAX_STAGED_FILES)throw new Error('Maximum 100 staged files.');
       const pending:StagedResource[]=[];
       let sum=total;
-      for(const file of Array.from(list)) {
+      for(const file of list) {
         if(file.size===0 || file.size>24*1024*1024)throw new Error(file.name+': must be 1 byte to 24 MiB.');
         sum+=file.size;
         if(sum>MAX_STAGED_BYTES)throw new Error('Selection exceeds 32 MiB total resource limit.');
@@ -172,7 +172,7 @@ export default function ClassicPackager(){
             <button className="btn btn-outline" disabled={busy} onClick={addSprite}><FileImage size={16}/> ADD SPRITE + PAL</button>
             <button className="btn btn-outline" disabled={busy} onClick={()=>filesInput.current?.click()}><Upload size={16}/> ADD LOCAL FILES</button>
             <input ref={filesInput} type="file" multiple accept=".msg,.frm,.pal" className="visually-hidden"
-              onChange={e=>{const files=e.target.files;e.target.value='';void uploadFiles(files);}}/>
+              onChange={e=>{const files=Array.from(e.target.files??[]);e.target.value='';void uploadFiles(files);}}/>
           </div>
           <div className="packager-resources-heading"><strong>STAGED ASSETS</strong><span>{resources.length} / {MAX_STAGED_FILES} FILES · {byteLabel(total)} / 32 MiB</span></div>
           {resources.length===0?<div className="packager-empty">
