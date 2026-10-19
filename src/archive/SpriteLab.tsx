@@ -90,7 +90,7 @@ export default function SpriteLab() {
   },[project]);
 
   useEffect(()=>{
-    if(!playing) return;
+    if(!playing || !Number.isInteger(project.fps) || project.fps < 1 || project.fps > 30) return;
     const period=window.setInterval(()=>{
       setFrame(f=>(f+1)%project.directions[0].frames.length);
     },1000/project.fps);
